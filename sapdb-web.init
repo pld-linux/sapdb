@@ -23,10 +23,10 @@ if is_no "${NETWORKING}"; then
 fi
 
 
-SAPDBWEB_BIN=/var/lib/sapdb/web/pgm/wahttp
+SAPDBWEB_BIN=/usr/lib/sapdb/web/pgm/wahttp
 test -x $SAPDBWEB_BIN || exit 1
 
-function RunningPort () {
+RunningPort () {
 	if [ -f /var/log/sapdb/httperr.log ]; then
 		_o=`cat /var/log/sapdb/httperr.log | grep on\ port | sed -e s/^.*port// | sed -e s/\\\[.*//`
 		for _i in $_o; do
@@ -35,7 +35,7 @@ function RunningPort () {
 	fi
 }
 
-function StartPort () {
+StartPort () {
 	if [ -f /var/spool/sql/ini/WebAgent74.ini ]; then
 		_o=`cat /var/spool/sql/ini/WebAgent74.ini | grep Port`
 		for _i in $_o; do
@@ -52,13 +52,13 @@ case "$1" in
 	    StartPort
 	    msg_starting "SAP DB WebServer on port $_port"
 	    
-	    LD_LIBRARY_PATH=/var/lib/sapdb/web/lib/lib64:$LD_LIBRARY_PATH
-	    LD_LIBRARY_PATH=/var/lib/sapdb/web/lib:$LD_LIBRARY_PATH
-	    LD_LIBRARY_PATH=/var/lib/sapdb/interfaces/odbc/lib/lib64:$LD_LIBRARY_PATH
-	    LD_LIBRARY_PATH=/var/lib/sapdb/interfaces/odbc/lib:$LD_LIBRARY_PATH
+	    LD_LIBRARY_PATH=/usr/lib/sapdb/web/lib/lib64:$LD_LIBRARY_PATH
+	    LD_LIBRARY_PATH=/usr/lib/sapdb/web/lib:$LD_LIBRARY_PATH
+	    LD_LIBRARY_PATH=/usr/lib/sapdb/interfaces/odbc/lib/lib64:$LD_LIBRARY_PATH
+	    LD_LIBRARY_PATH=/usr/lib/sapdb/interfaces/odbc/lib:$LD_LIBRARY_PATH
 	    export LD_LIBRARY_PATH
 	    
-	    daemon --user nobody $SAPDBWEB_BIN -f /var/spool/sql/ini/WebAgent74.ini
+	    daemon --user nobody "$SAPDBWEB_BIN -f /var/spool/sql/ini/WebAgent74.ini > /dev/null 2>&1 &"
 	    RETVAL=$?
 	    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/sapdb-web
 	else
