@@ -1,14 +1,14 @@
 
 # TODO:
-#	- Correct web server pages to work fine with konqueror.
-#	- All scripts which use dbmcli look for an exit result grepping
-#	  dbmcli output and searching "OK" phrase. It's wrong while error
-#	  messages can contains "OK" phrase too.
-#	- A sweet dream: dynamic linking...
-#	- update /etc/services with following values:
-#		sql6		7210/tcp
-#		sapdbni72	7269/tcp
-#		sql30		7200/tcp
+# - Correct web server pages to work fine with konqueror.
+# - All scripts which use dbmcli look for an exit result grepping
+#   dbmcli output and searching "OK" phrase. It's wrong while error
+#   messages can contains "OK" phrase too.
+# - A sweet dream: dynamic linking...
+# - update /etc/services with following values:
+#	sql6		7210/tcp
+#	sapdbni72	7269/tcp
+#	sql30		7200/tcp
 
 %define		mainver		7.4
 %define		subver		3.17
@@ -278,7 +278,7 @@ export NOREG
 cd $RPM_BUILD_DIR/%{name}-%{version}
 
 $RPM_BUILD_DIR/%{name}-%{version}/buildtools/bin/newSapdbSrc.py \
-    $RPM_BUILD_DIR/%{name}-%{version}/%{intversion}/SAPDB_ORG
+	$RPM_BUILD_DIR/%{name}-%{version}/%{intversion}/SAPDB_ORG
 
 IPROF=$RPM_BUILD_DIR/%{name}-%{version}/%{intversion}/SAPDB_ORG/.iprofile
 cp $IPROF $IPROF.tmp
@@ -302,15 +302,15 @@ rm -rf $RPM_BUILD_ROOT
 ORG=$RPM_BUILD_DIR/%{name}-%{version}/%{intversion}/SAPDB_ORG
 
 mkdir -p \
-    $RPM_BUILD_ROOT/etc/sysconfig \
-    $RPM_BUILD_ROOT%{sapdbdir}/{testdb,bin,pgm,sap} \
-    $RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb/pythondef \
-    $RPM_BUILD_ROOT%{sapdbdir}/runtime/jar \
-    $RPM_BUILD_ROOT%{sapdbdir}/runtime/7403/lib \
-    $RPM_BUILD_ROOT%{sqlspool}/{dbspeed,diag,fifo,ipc,pid,ppid} \
-    $RPM_BUILD_ROOT%{sapdbvar}/{config,wrk} \
-    $RPM_BUILD_ROOT%{_libdir}/python2.2 \
-    $RPM_BUILD_ROOT%{_includedir}/sapdb
+	$RPM_BUILD_ROOT/etc/sysconfig \
+	$RPM_BUILD_ROOT%{sapdbdir}/{testdb,bin,pgm,sap} \
+	$RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb/pythondef \
+	$RPM_BUILD_ROOT%{sapdbdir}/runtime/jar \
+	$RPM_BUILD_ROOT%{sapdbdir}/runtime/7403/lib \
+	$RPM_BUILD_ROOT%{sqlspool}/{dbspeed,diag,fifo,ipc,pid,ppid} \
+	$RPM_BUILD_ROOT%{sapdbvar}/{config,wrk} \
+	$RPM_BUILD_ROOT%{_libdir}/python2.2 \
+	$RPM_BUILD_ROOT%{_includedir}/sapdb
 
 #
 # install SAPDB files
@@ -319,20 +319,20 @@ cp -a $ORG/usr/Documents $RPM_BUILD_ROOT%{sapdbdir}
 
 # bin directory
 cp $ORG/usr/bin/{dbanalyzer,dbmcli-HelpInst,dbmcli,irtrace,loadercli,backint} \
-    $ORG/usr/bin/{pipe2file,cpc,repmcli,dbmgetf,xuserUnicode,x_ping,sysmon} \
-    $ORG/usr/bin/{irconf,cpclnk,buildinfo,sdbinfo,sqlver,sqlwhat,x_look} \
-    $ORG/usr/bin/{x_install,op2np,odbclnk,x_genwin,ps_all} \
-    $RPM_BUILD_ROOT%{sapdbdir}/bin
+	$ORG/usr/bin/{pipe2file,cpc,repmcli,dbmgetf,xuserUnicode,x_ping,sysmon} \
+	$ORG/usr/bin/{irconf,cpclnk,buildinfo,sdbinfo,sqlver,sqlwhat,x_look} \
+	$ORG/usr/bin/{x_install,op2np,odbclnk,x_genwin,ps_all} \
+	$RPM_BUILD_ROOT%{sapdbdir}/bin
 
 for i in x_analys x_clear x_cons x_diagnose x_maketi x_python x_server x_show \
-    x_start x_stop x_wiz x_wizard x_wizstop x_wiztrc xbackup xci xdbload \
-    xinstinfo xkernprot xoldci xpu xregcomp xsql xsqlpro xsysrc xtracesort \
-    xuser xvttest; do
-	ln -sf %{sapdbdir}/bin/sysmon $RPM_BUILD_ROOT%{sapdbdir}/bin/$i
+	x_start x_stop x_wiz x_wizard x_wizstop x_wiztrc xbackup xci xdbload \
+	xinstinfo xkernprot xoldci xpu xregcomp xsql xsqlpro xsysrc xtracesort \
+	xuser xvttest; do
+		ln -sf %{sapdbdir}/bin/sysmon $RPM_BUILD_ROOT%{sapdbdir}/bin/$i
 done
 
 cat $ORG/usr/bin/ireport.py | sed "s:/usr/bin/env :%{sapdbdir}/bin/:" > \
-    $RPM_BUILD_ROOT%{sapdbdir}/bin/ireport.py
+	$RPM_BUILD_ROOT%{sapdbdir}/bin/ireport.py
 
 # env, terminfo, etc
 cp -a $ORG/usr/env $RPM_BUILD_ROOT%{sapdbdir}
@@ -341,7 +341,7 @@ cp -a $ORG/usr/terminfo $RPM_BUILD_ROOT%{sapdbdir}
 
 # pgm
 cp `ls $ORG/usr/pgm | egrep -v "\.f|\.s" | xargs printf "$ORG/usr/pgm/%%s\n"` \
-    $RPM_BUILD_ROOT%{sapdbdir}/pgm
+	$RPM_BUILD_ROOT%{sapdbdir}/pgm
 ln -sf /usr/bin/python $RPM_BUILD_ROOT%{sapdbdir}/pgm/python
 
 # lib
@@ -354,22 +354,22 @@ ln -sf %{_libdir}/python2.2 $RPM_BUILD_ROOT%{_libdir}/python1.5
 cp -a $ORG/usr/misc/DBD $RPM_BUILD_ROOT%{sapdbdir}/misc
 cp -a $ORG/usr/misc/SAP $RPM_BUILD_ROOT%{sapdbdir}/misc
 cp `ls $ORG/usr/misc/*.txt` \
-    $RPM_BUILD_ROOT%{sapdbdir}/misc
+	$RPM_BUILD_ROOT%{sapdbdir}/misc
 cp `ls $ORG/usr/misc/sapdb/*.py` \
-    $RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb
+	$RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb
 cp `ls $ORG/usr/misc/sapdb/pythondef/*.py` \
-    `ls $ORG/usr/misc/sapdb/pythondef/*.so` \
-    $RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb/pythondef
+	`ls $ORG/usr/misc/sapdb/pythondef/*.so` \
+	$RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb/pythondef
 cp `ls $ORG/usr/misc/*.so` `ls $ORG/usr/misc/*.py` \
-    $ORG/usr/misc/{updcol,puclst,pchtab,get_page,instperl.pl,bgrep,patchb,x_watch} \
-    $RPM_BUILD_ROOT%{sapdbdir}/misc
+	$ORG/usr/misc/{updcol,puclst,pchtab,get_page,instperl.pl,bgrep,patchb,x_watch} \
+	$RPM_BUILD_ROOT%{sapdbdir}/misc
 
 # config
 sed 's:$OWN32:%{sapdbdir}/web:g
 s:$OWN64:%{sapdbdir}/web:g
 s:$LOG:/var/log/sapdb:g
 s:Port=85:Port=9999:g' $ORG/usr/config/WebAgent74.ini \
-    > $RPM_BUILD_ROOT%{sapdbvar}/config/WebAgent74.ini
+	> $RPM_BUILD_ROOT%{sapdbvar}/config/WebAgent74.ini
 cp $ORG/usr/config/{mime.types,instweb} $RPM_BUILD_ROOT%{sapdbvar}/config
 ln -sf %{sapdbvar}/config $RPM_BUILD_ROOT%{sapdbdir}/config
 ln -sf %{sapdbvar}/config $RPM_BUILD_ROOT%{sqlspool}/ini
@@ -380,20 +380,20 @@ cp $ORG/usr/runtime/7403/lib/libpcr.so $RPM_BUILD_ROOT%{sapdbdir}/runtime/7403/l
 
 # sap
 cp `ls $ORG/usr/sap | egrep -v "\.f|\.a" | xargs printf "$ORG/usr/sap/%%s\n"` \
-    $RPM_BUILD_ROOT%{sapdbdir}/sap
+	$RPM_BUILD_ROOT%{sapdbdir}/sap
 ln -sf %{sapdbdir}/misc/updcol $RPM_BUILD_ROOT%{sapdbdir}/updcol
 
 # sdk
 FILES=`find $ORG/usr/sdk -type f -printf "%%P\n" | grep -v "\.f"`
 for f in $FILES; do
-    mkdir -p $RPM_BUILD_ROOT%{sapdbdir}/sdk/`dirname $f`
-    cp $ORG/usr/sdk/$f $RPM_BUILD_ROOT%{sapdbdir}/sdk/$f
+	mkdir -p $RPM_BUILD_ROOT%{sapdbdir}/sdk/`dirname $f`
+	cp $ORG/usr/sdk/$f $RPM_BUILD_ROOT%{sapdbdir}/sdk/$f
 done
 
 # incl
 cp -a $ORG/usr/incl/* $RPM_BUILD_ROOT%{_includedir}/sapdb
 mv $RPM_BUILD_ROOT%{sapdbdir}/sdk/7403/incl/* \
-    $RPM_BUILD_ROOT%{_includedir}/sapdb
+	$RPM_BUILD_ROOT%{_includedir}/sapdb
 rm -rf $RPM_BUILD_ROOT%{sapdbdir}/sdk/7403/incl
 ln -sf %{_includedir}/sapdb $RPM_BUILD_ROOT%{sapdbdir}/sdk/7403/incl
 
@@ -404,10 +404,10 @@ ln -sf %{sapdbvar}/wrk $RPM_BUILD_ROOT%{sapdbdir}/wrk
 # install DEMO scripts
 #
 for i in $RPM_BUILD_DIR/%{name}-%{version}/demo/*; do
-    rm -f $RPM_BUILD_ROOT%{sapdbdir}/testdb/`basename $i`
-    sed 's:/opt/sapdb:%{sapdbdir}:g
-s:/bin/sh:/bin/bash:' $i \
-    > $RPM_BUILD_ROOT%{sapdbdir}/testdb/`basename $i`
+	rm -f $RPM_BUILD_ROOT%{sapdbdir}/testdb/`basename $i`
+	sed 's:/opt/sapdb:%{sapdbdir}:g
+	s:/bin/sh:/bin/bash:' $i \
+	> $RPM_BUILD_ROOT%{sapdbdir}/testdb/`basename $i`
 done
 
 #
@@ -668,7 +668,7 @@ if [ $? -eq 0 ]; then
 fi
 
 rm -f $DBROOT/env/_OPTSAPD* $DBROOT/load.prot >/dev/null 2>&1
-rm -f $DBROOT/wrk/Registry.dcom*  >/dev/null 2>&1
+rm -f $DBROOT/wrk/Registry.dcom* >/dev/null 2>&1
 rm -f %{indepdat}/config/Registry1.dcom >/dev/null 2>&1
 rm -f %{sqlspool}/ini/Registry_dcom.ini >/dev/null 2>&1
 rm -f %{sqlspool}/ini/odbc.ini >/dev/null 2>&1
