@@ -1,0 +1,11 @@
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/loadercperl.dld V74_03_17.chng/SAPDB_ORG/sys/desc/loadercperl.dld
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/loadercperl.dld	Thu Mar 20 16:34:40 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/loadercperl.dld	Thu May 29 12:01:56 2003
+@@ -58,6 +58,7 @@
+ ven906.c
+ libsqlrte.rel
+ libsqlptc.rel
++-lpam
+ &endif
+ 
+ & if $MACH in [ PA11, PA20W ]
