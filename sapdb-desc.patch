@@ -1,0 +1,96 @@
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/dbmcli.lnk V74_03_17.chng/SAPDB_ORG/sys/desc/dbmcli.lnk
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/dbmcli.lnk	Fri Apr 18 10:24:22 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/dbmcli.lnk	Thu Apr 17 13:14:42 2003
+@@ -165,7 +165,7 @@
+ &endif
+ &endif
+ &if $OSSPEC == LINUX
+-  -pam
++  -lpam
+ &endif
+ #------------------------
+ &endif
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/diagnose.lnk V74_03_17.chng/SAPDB_ORG/sys/desc/diagnose.lnk
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/diagnose.lnk	Thu Mar 20 15:34:39 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/diagnose.lnk	Thu Apr 17 17:41:57 2003
+@@ -29,6 +29,7 @@
+ &else
+ &if $OSSPEC in [ AIX ] or $MACH in [ SUN ] or ( $OSSPEC in [ LINUX ] )
+ -ldl
++-lncurses
+ &endif
+ vxt01
+ veo301-xt01.cpp f
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/lserver.lnk V74_03_17.chng/SAPDB_ORG/sys/desc/lserver.lnk
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/lserver.lnk	Fri Apr 18 10:24:22 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/lserver.lnk	Thu Apr 17 17:40:54 2003
+@@ -100,6 +100,7 @@
+ &endif
+ &if $OSSPEC == LINUX
+   -lpam
++  -lncurses
+ &endif
+ 
+ &if $OS = UNIX   
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/maketi.lnk V74_03_17.chng/SAPDB_ORG/sys/desc/maketi.lnk
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/maketi.lnk	Thu Mar 20 15:34:41 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/maketi.lnk	Thu Apr 17 17:42:16 2003
+@@ -27,3 +27,7 @@
+ &endif
+ vsp102.c
+ splib
++&if $OSSPEC == LINUX
++  -lncurses
++&endif
++
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/slowci.lnk V74_03_17.chng/SAPDB_ORG/sys/desc/slowci.lnk
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/slowci.lnk	Thu Mar 20 15:34:42 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/slowci.lnk	Thu Apr 17 17:42:32 2003
+@@ -82,5 +82,7 @@
+ # need support for shadow passwords
+   -lsecurity
+ & endif
+-
++&if $OSSPEC == LINUX
++  -lncurses
++&endif
+ 
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/userx.lnk V74_03_17.chng/SAPDB_ORG/sys/desc/userx.lnk
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/userx.lnk	Thu Mar 20 15:34:43 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/userx.lnk	Thu Apr 17 13:01:10 2003
+@@ -53,10 +53,12 @@
+  ven17.c
+  ven37.c
+  enalib
++ -lncurses
++ -lm
++ -lsigc-1.2
+ &endif
+ splib	f
+ & if $MACH = SUN
+ # for sqlyieldthread
+  veo07-u.c
+ & endif
+-
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/vttest.lnk V74_03_17.chng/SAPDB_ORG/sys/desc/vttest.lnk
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/vttest.lnk	Thu Mar 20 15:34:43 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/vttest.lnk	Thu Apr 17 17:43:03 2003
+@@ -42,3 +42,7 @@
+ 
+ &endif
+ splib   f
++
++&if $OSSPEC == LINUX
++  -lncurses
++&endif
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/src/SAPDB/DBM/Cli/DBMCli_AutoExtend.lnk V74_03_17.chng/SAPDB_ORG/sys/src/SAPDB/DBM/Cli/DBMCli_AutoExtend.lnk
+--- V74_03_17.orig/SAPDB_ORG/sys/src/SAPDB/DBM/Cli/DBMCli_AutoExtend.lnk	Thu Mar 20 15:34:55 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/src/SAPDB/DBM/Cli/DBMCli_AutoExtend.lnk	Thu Apr 17 17:35:45 2003
+@@ -62,6 +62,7 @@
+ # special libraries for LINUX
+ &if $OSSPEC in [ LINUX  ]
+   -ldl
++  -lpam
+ &endif
+ # special libraries for DEC
+ &if $OSSPEC in [ OSF1 ]
