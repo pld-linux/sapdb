@@ -5,7 +5,7 @@
 Summary:	SAP DB
 Name:		sapdb
 Version:	%{mainver}.%{subver}
-Release:	0.2
+Release:	0.3
 License:	GPL
 Group:		Applications/Databases
 Source0:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-source-%{mainver}.0%{subver}.tgz
@@ -79,7 +79,8 @@ Requires(pre):	/usr/sbin/useradd
 Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
 Requires(post,postun):	/sbin/chkconfig
-
+Requires:	python >= 2.2
+Requires:	python-modules >= 2.2
 
 %description ind 
 - remote communication server
@@ -239,7 +240,8 @@ mkdir -p \
     $RPM_BUILD_ROOT%{sqlspool}/pid \
     $RPM_BUILD_ROOT%{sqlspool}/ppid \
     $RPM_BUILD_ROOT%{sapdbvar}/indep_data/config \
-    $RPM_BUILD_ROOT%{sapdbvar}/indep_data/wrk
+    $RPM_BUILD_ROOT%{sapdbvar}/indep_data/wrk \
+    $RPM_BUILD_ROOT%{_libdir}/python2.2
 
 sed 's:$OWN32:%{sapdbdir}/web:g 
 s:$OWN64:%{sapdbdir}/web:g
@@ -291,6 +293,32 @@ install -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/pam.d/sapdb
 cp %{SOURCE7}	$RPM_BUILD_DIR/%{name}-%{version}/README.SuSE 
 cp %{SOURCE10}	$RPM_BUILD_DIR/%{name}-%{version}
 
+#
+# use PLD Python
+#
+mv $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5/* \
+    $RPM_BUILD_ROOT%{_libdir}/python2.2
+rmdir $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5
+ln -sf %{_libdir}/python2.2 $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5
+
+#
+# sapdb user HOME scripts
+#
+cat <<EOF > $RPM_BUILD_ROOT%{sapdbvar}/.profile
+INDEP=%{sapdbdir}/indep_prog
+DEP=%{sapdbdir}/depend
+
+SAPDBROOT=$DEP
+PATH=$PATH:$IND/bin:$DEP/bin
+#CLASSPATH=$CLASSPATH:$SAPDBROOT/misc/sapdbc.jar:.
+#PERL5LIB=$PERL5LIB:$SAPDBROOT/misc
+#PYTHONPATH=$PYTHONPATH:$SAPDBROOT/misc
+
+export INDEP DEP SAPDBROOT PATH 
+#export PYTHONPATH
+#export CLASSPATH
+#export PERL5LIB
+EOF
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -529,9 +557,10 @@ exit 0
 %attr(755,root,root) %{sapdbdir}/indep_prog/runtime/7403/lib/*
 %{sapdbdir}/indep_prog/terminfo
 %dir %attr(755,sapdb,sapdb) %{sapdbvar}
-%dir %attr(775,root,sapdb) %{sapdbvar}/indep_data
-%dir %attr(775,root,sapdb) %{sapdbvar}/indep_data/config
-%dir %attr(775,root,sapdb) %{sapdbvar}/indep_data/wrk
+%attr(644,sapdb,sapdb) %{sapdbvar}/.profile
+%dir %attr(775,sapdb,sapdb) %{sapdbvar}/indep_data
+%dir %attr(775,sapdb,sapdb) %{sapdbvar}/indep_data/config
+%dir %attr(775,sapdb,sapdb) %{sapdbvar}/indep_data/wrk
 %dir %attr(775,root,sapdb) %{sqlspool}
 %dir %attr(775,root,sapdb) %{sqlspool}/ini
 %dir %attr(775,root,sapdb) %{sqlspool}/dbspeed
@@ -552,6 +581,7 @@ exit 0
 %dir %{sapdbdir}/depend/lib
 %attr(755,root,root) %{sapdbdir}/depend/lib/*.so
 %{sapdbdir}/depend/lib/python1.5
+%{_libdir}/python2.2
 %dir %{sapdbdir}/depend/misc
 %attr(755,root,root) %{sapdbdir}/depend/misc/bgrep
 %attr(755,root,root) %{sapdbdir}/depend/misc/get_page
