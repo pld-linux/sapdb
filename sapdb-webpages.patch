@@ -1,7 +1,7 @@
 diff -Nur V74_03_17.orig/SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_DefaultDocument.html V74_03_17.chng/SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_DefaultDocument.html
 --- V74_03_17.orig/SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_DefaultDocument.html	Thu Mar 20 15:35:53 2003
 +++ V74_03_17.chng/SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_DefaultDocument.html	Sat May  3 06:02:25 2003
-@@ -27,8 +27,15 @@
+@@ -27,8 +27,17 @@
  </head>
  
  <body background="/WARoot/Images/tatami.gif" topmargin="0" leftmargin="0">
@@ -15,6 +15,8 @@ diff -Nur V74_03_17.orig/SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_DefaultDoc
 +<ul>
 +<li><a href="/websql">WEB SQL</a>
 +<li><a href="/webdbm">WEB Database Manager</a>
++<li><a href="/waadmin.wa">WEB Admin</a>
++<li><a href="/waecho">Echo</a>
 +</ul>
  </body>
  
