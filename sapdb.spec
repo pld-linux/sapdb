@@ -488,7 +488,7 @@ if [ "$t" = "" ]; then
     echo "- could not set independent program path: $o" >&2
     exit 1
 fi
-chown sapdb.sapsys %{sqlspool}/ini/SAP_DBTech.ini
+chown sapdb:sapsys %{sqlspool}/ini/SAP_DBTech.ini
 
 #register precompiler runtime
 %{indep}/bin/irconf -i -p %{indep}/runtime/7403 >/dev/null 2>&1 || :
@@ -572,7 +572,7 @@ if [ "$t" = "" ]; then
     echo "- could not register dbpinstall: $o" >&2
     exit 1
 fi
-chown sapdb.sapsys %{sapdbvar}/config/Registry1.dcom
+chown sapdb:sapsys %{sapdbvar}/config/Registry1.dcom
 
 exit 0
 
