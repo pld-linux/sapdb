@@ -60,6 +60,7 @@ Patch21:	%{name}-webpages.patch
 Patch22:	%{name}-nostatic-ncurses.patch
 Patch23:	%{name}-loadercperl.patch
 Patch24:	%{name}-python-dep.patch
+URL:		http://www.sapdb.org/
 BuildRequires:	bash
 BuildRequires:	bison
 BuildRequires:	glibc-devel
@@ -71,8 +72,8 @@ BuildRequires:	python >= 2.2
 BuildRequires:	python-libs >= 2.2
 BuildRequires:	python-devel >= 2.2
 BuildRequires:	python-devel-src >= 2.2
+BuildRequires:	rpmbuild(macros) >= 1.159
 BuildRequires:	vim-static
-URL:		http://www.sapdb.org/
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		sapdbdir	%{_libdir}/%{name}
@@ -108,13 +109,17 @@ Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
 Summary:	SAP DB - release independend programs
 Summary(pl):	SAP DB - programy niezale¿ne od wersji
 Group:		Applications/Databases
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
-Requires(postun):	/usr/sbin/userdel
 Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
 Requires(post,postun):	/sbin/chkconfig
 Requires:	python >= 2.2
 Requires:	python-modules >= 2.2
+Provides:	group(sapsys)
+Provides:	user(sapdb)
 
 %description ind
 - remote communication server
@@ -484,18 +489,27 @@ export INDEP DEP SAPDBROOT PATH
 #export PERL5LIB
 EOF
 
-
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %pre ind
-if [ -z "`getgid sapsys`" ]; then
-	/usr/sbin/groupadd -g 101 -r sapsys 2> /dev/null || true
+if [ -n "`/usr/bin/getgid sapsys`" ]; then
+	if [ "`/usr/bin/getgid sapsys`" != "101" ]; then
+		echo "Error: group sapsys doesn't have gid=101. Correct this before installing sapdb." 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/groupadd -g 101 sapsys 1>&2
 fi
 
-if [ -z "`id -u sapdb 2>/dev/null`" ]; then
-	/usr/sbin/useradd -u 101 -g sapsys -r -d %{sapdbvar} -s /bin/bash \
-		-c "SAP DB" sapdb 2> /dev/null || true
+if [ -n "`/bin/id -u sapdb 2>/dev/null`" ]; then
+	if [ "`/bin/id -u sapdb`" != "101" ]; then
+		echo "Error: user sapdb doesn't have uid=101. Correct this before installing sapdb." 1>&2
+		exit 1
+	fi
+else
+	/usr/sbin/useradd -u 101 -g sapsys -d %{sapdbvar} -s /bin/bash \
+		-c "SAP DB" sapdb 1>&2
 fi
 
 %post ind
@@ -576,8 +590,8 @@ exit 0
 
 %postun ind
 if [ "$1" = "0" ] ; then
-	/usr/sbin/userdel sapdb 2> /dev/null || true
-	/usr/sbin/groupdel sapsys 2> /dev/null || true
+	%userremove sapdb
+	%groupremove sapsys
 fi
 
 %post srv
