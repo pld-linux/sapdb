@@ -41,7 +41,7 @@ case "$1" in
 		    /sbin/sysctl -e -w kernel.shmmax=104857600 > /dev/null 2>&1
 		fi
 		
-		daemon --user sapdb $X_SERVER start >/dev/null 2>&1 
+		daemon --user sapdb "$X_SERVER start >/dev/null 2>&1"
 		
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/sapdb
