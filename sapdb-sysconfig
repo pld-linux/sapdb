@@ -1,0 +1,13 @@
+## Path:        Applications/SAPDB
+## Description: Defining startup-services for SAPDB
+## Type:        string
+## Default:     ""
+#
+# databases which should be started on system startup should be defined
+# here in the following format:
+# SAPDB_INSTANCES="DB1,dbmuser,dbmpass DB2,dbmuser,dbmpass ..." 
+# DBX:     database SID
+# dbmuser: database manager username
+# dbmpass: database manager password
+#
+SAPDB_INSTANCES=""
