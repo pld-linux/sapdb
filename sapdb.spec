@@ -63,7 +63,7 @@ Patch24:	%{name}-python-dep.patch
 BuildRequires:	bash
 BuildRequires:	bison
 BuildRequires:	glibc-devel
-BuildRequires:	libsigc++-devel >= 1.2.4
+BuildRequires:	libsigc++12-devel >= 1.2.4
 BuildRequires:	ncurses-devel
 BuildRequires:	pam-devel
 BuildRequires:	perl
