@@ -1,0 +1,17 @@
+diff -Nur buildtools.orig/sys/src/tt/toolvars-tml.pl.tt buildtools.chng/sys/src/tt/toolvars-tml.pl.tt
+--- buildtools.orig/sys/src/tt/toolvars-tml.pl.tt	Wed Jan 22 20:00:41 2003
++++ buildtools.chng/sys/src/tt/toolvars-tml.pl.tt	Tue May 20 09:07:39 2003
+@@ -1511,12 +1511,7 @@
+ &elif $OSSPEC in [ WIN32 ]
+ @LIBSCR = ( "user32.lib" );
+ &elif $OSSPEC in [ LINUX ]
+-# PTS 1109770 (core dump when using libncurses.so.5x)
+-&if $MACH in [ S390X, X86_64 ]
+-@LIBSCR = "/usr/lib64/libncurses.a";
+-&else
+-@LIBSCR = "/usr/lib/libncurses.a";
+-&endif
++@LIBSCR = "-lncurses";
+ &elif $OSSPEC in [ HPUX ]
+ if ($MACH eq "HP9") {
+ 	@LIBSCR = "-lHcurses";
