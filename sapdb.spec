@@ -885,7 +885,7 @@ exit 0
 %{sapdbdir}/sap/*.dbm
 %{sapdbdir}/sap/*.lst
 %attr(755,sapdb,sapsys) %{sapdbdir}/sap/*.so
-%attr(754,root/root) /etc/rc.d/init.d/sapdb
+%attr(754,root,root) /etc/rc.d/init.d/sapdb
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/sapdb
 %{sapdbdir}/etc
 /etc/pam.d/sapdb
