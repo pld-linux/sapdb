@@ -5,7 +5,7 @@
 Summary:	SAP DB
 Name:		sapdb
 Version:	%{mainver}.%{subver}
-Release:	0.1
+Release:	0.2
 License:	GPL
 Group:		Applications/Databases
 Source0:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-source-%{mainver}.0%{subver}.tgz
@@ -571,7 +571,7 @@ exit 0
 %dir %{sapdbdir}/depend/sap
 %attr(755,root,root) %{sapdbdir}/depend/sap/updcol
 %{sapdbdir}/depend/sap/grantxdb.dbm
-%attr(755,root,root) %{sapdbdir}/depend/wrk
+%attr(755,sapdb,sapdb) %{sapdbdir}/depend/wrk
 %attr(744,root,root) /etc/rc.d/init.d/sapdb
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/sapdb
 /etc/pam.d/sapdb
