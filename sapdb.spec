@@ -1,3 +1,12 @@
+
+# TODO:
+#	- Correct web server pages to work fine with konqueror.
+#	- Creating databases via web interfaces do not work fine yet.
+#	- All scripts which use dbmcli look for an exit result grepping
+#         dbmcli output and searching "OK" phrase. It's wrong while error
+#	  messages can contains "OK" phrase too.
+#	- A sweet dream: dynamic linking...
+
 %define		mainver		7.4
 %define		subver		3.17
 %define		intversion	V74_03_17
@@ -5,7 +14,7 @@
 Summary:	SAP DB
 Name:		sapdb
 Version:	%{mainver}.%{subver}
-Release:	0.4
+Release:	0.5
 License:	GPL
 Group:		Applications/Databases
 Source0:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-source-%{mainver}.0%{subver}.tgz
@@ -20,7 +29,6 @@ Source8:	%{name}-suse-pam
 Source10:	migration73_74eng.pdf
 Source11:	%{name}-suse-rpm.lst
 Source12:	%{name}-suse-firststeps.tgz
-Source13:	%{name}-websvr-homesite.html
 Patch0:		%{name}-suse-desc.patch
 Patch2:		%{name}-suse-src.patch
 Patch4:		%{name}-suse-python22.patch
@@ -40,6 +48,7 @@ Patch17:	%{name}-suse-wahttp-pidfile.patch
 Patch18:	%{name}-suse-optimize-gcc33.patch
 Patch19:	%{name}-bash.patch
 Patch20:	%{name}-desc.patch
+Patch21:	%{name}-webpages.patch
 BuildRequires:	bash
 BuildRequires:	ncurses-static
 BuildRequires:	bison
@@ -176,6 +185,7 @@ cd $RPM_BUILD_DIR/%{name}-%{version}/%{intversion}
 %patch16
 %patch17
 %patch20 -p1
+%patch21 -p1
 
 cd $RPM_BUILD_DIR/%{name}-%{version}/buildtools
 %patch10 -p1
@@ -301,6 +311,7 @@ mv $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5/* \
     $RPM_BUILD_ROOT%{_libdir}/python2.2
 rmdir $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5
 ln -sf %{_libdir}/python2.2 $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5
+ln -sf /usr/bin/python $RPM_BUILD_ROOT%{sapdbdir}/depend/pgm/python
 
 #
 # sapdb user HOME scripts
@@ -321,11 +332,6 @@ export INDEP DEP SAPDBROOT PATH
 #export PERL5LIB
 EOF
 
-#
-# WebServer home site
-#
-rm -f $RPM_BUILD_ROOT%{sapdbdir}/web/Documents/index.html
-cp %{SOURCE13} $RPM_BUILD_ROOT%{sapdbdir}/web/Documents/index.html
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -671,4 +677,5 @@ exit 0
 
 %files testdb
 %defattr(644,root,root,755)
-%{sapdbdir}/testdb
+%dir %{sapdbdir}/testdb
+%attr(755,sapdb,sapdb) %{sapdbdir}/testdb/*
