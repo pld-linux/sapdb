@@ -1,5 +1,6 @@
 
 # TODO:
+# - check/fix files ownership (use root:root where possible)
 # - Correct web server pages to work fine with konqueror.
 # - All scripts which use dbmcli look for an exit result grepping
 #   dbmcli output and searching "OK" phrase. It's wrong while error
@@ -138,7 +139,7 @@ Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
 Summary:	SAP DB database server
 Summary(pl):	Serwer bazodanowy SAP DB
 Group:		Applications/Databases
-Requires(pre):	%{name}-ind = %{version}
+Requires(pre):	%{name}-ind = %{version}-%{release}
 Requires(post,postun):	/sbin/chkconfig
 
 %description srv
@@ -151,8 +152,8 @@ Serwer bazodanowy SAP DB.
 Summary:	SAP DB web tools
 Summary(pl):	Narzêdzia WWW dla SAP DB
 Group:		Applications/Databases
-Requires:	%{name}-ind = %{version}
-Requires:	%{name}-callif >= %{version}
+Requires:	%{name}-ind = %{version}-%{release}
+Requires:	%{name}-callif = %{version}-%{release}
 
 %description web
 SAP DB web tools.
@@ -164,7 +165,7 @@ Narzêdzia WWW dla SAP DB.
 Summary:	SAP DB precompiler
 Summary(pl):	Prekompilator SAP DB
 Group:		Applications/Databases
-PreReq:		sapdb-ind >= %{version}
+PreReq:		%{name}-ind = %{version}-%{release}
 
 %description precompiler
 SAP DB precompiler.
@@ -176,7 +177,7 @@ Prekompilator SAP DB.
 Summary:	SAP DB ODBC and JDBC interfaces
 Summary(pl):	Interfejsy ODBC i JDBC do SAP DB
 Group:		Applications/Databases
-Requires:	%{name}-ind = %{version}
+Requires:	%{name}-ind = %{version}-%{release}
 
 %description callif
 - ODBC driver
@@ -192,7 +193,7 @@ Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
 Summary:	SAP DB Perl and Python interfaces
 Summary(pl):	Interfejsy Perla i Pythona do SAP DB
 Group:		Applications/Databases
-PreReq:		sapdb-ind >= %{version}
+PreReq:		%{name}-ind = %{version}-%{release}
 
 %description scriptif
 SAP DB Perl and Python interfaces.
@@ -204,7 +205,8 @@ Interfejsy Perla i Pythona do SAP DB.
 Summary:	SAP DB test database
 Summary:	Testowa baza danych SAP DB
 Group:		Applications/Databases
-PreReq:		sapdb-ind sapdb-srv
+PreReq:		%{name}-ind = %{version}-%{release}
+PreReq:		%{name}-srv = %{version}-%{release}
 
 %description testdb
 This package contains a script tp create and immediately start
@@ -301,7 +303,7 @@ rm -rf $RPM_BUILD_ROOT
 
 ORG=$RPM_BUILD_DIR/%{name}-%{version}/%{intversion}/SAPDB_ORG
 
-mkdir -p \
+install -d \
 	$RPM_BUILD_ROOT/etc/sysconfig \
 	$RPM_BUILD_ROOT%{sapdbdir}/{testdb,bin,pgm,sap} \
 	$RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb/pythondef \
@@ -883,7 +885,7 @@ exit 0
 %{sapdbdir}/sap/*.dbm
 %{sapdbdir}/sap/*.lst
 %attr(755,sapdb,sapsys) %{sapdbdir}/sap/*.so
-%attr(754,sapdb,sapsys) /etc/rc.d/init.d/sapdb
+%attr(754,root/root) /etc/rc.d/init.d/sapdb
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/sapdb
 %{sapdbdir}/etc
 /etc/pam.d/sapdb
@@ -905,7 +907,7 @@ exit 0
 %attr(755,sapdb,sapsys) %{_libdir}/websql.so
 %attr(755,sapdb,sapsys) %{sapdbdir}/pgm/wahttp
 %{sapdbdir}/pgm/wahttp.conf
-%attr(754,sapdb,sapsys) /etc/rc.d/init.d/sapdb-web
+%attr(754,root,root) /etc/rc.d/init.d/sapdb-web
 %{sqlspool}/ini
 %dir %attr(770,sapdb,sapsys) /var/log/sapdb
 %dir /var/run/wahttp
