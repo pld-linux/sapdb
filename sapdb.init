@@ -17,9 +17,13 @@
 [ -f /etc/sysconfig/sapdb ] && . /etc/sysconfig/sapdb
 
 # Check that networking is up.
-if is_no "${NETWORKING}"; then
-	msg_network_down SAP DB
-	exit 1
+if is_yes "${NETWORKING}"; then
+	if [ ! -f /var/lock/subsys/network ]; then
+		msg_network_down SAP DB
+		exit 1
+	fi
+else
+	exit 0
 fi
 
 # where to find x_server executable
@@ -30,85 +34,79 @@ DBMCLI=$X_PATH/dbmcli
 VSERVER=$IND_PROG_DBROOT/pgm/vserver
 
 test -x $X_SERVER || exit 1
+RETVAL=0
 
 case "$1" in
-    start)
+  start)
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/sapdb ]; then
 		msg_starting "SAPDB communication server"
 		SHMMAX=`/sbin/sysctl -n kernel.shmmax`
 		if [ $SHMMAX -lt 104857600 ] ; then
-		    /sbin/sysctl -e -w kernel.shmmax=104857600 > /dev/null 2>&1
+			/sbin/sysctl -e -w kernel.shmmax=104857600 > /dev/null 2>&1
 		fi
-		
+
 		daemon --user sapdb "$X_SERVER start >/dev/null 2>&1"
-		
+
 		RETVAL=$?
-		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/sapdb
-		
 		for inst in $SAPDB_INSTANCES; do
- 		    DB=${inst%%,*}
-        	    DBM=${inst#*,}
-		    msg_starting "SAPDB instance $DB"; busy
-		    $DBMCLI -d $DB -u $DBM db_warm > /dev/null &
-		    RETVAL=$?
-		    if [ $RETVAL -eq 0 ]; then
-			deltext; ok
-		    else
-			deltext; fail
-		    fi
-    		done		
+ 			DB=${inst%%,*}
+			DBM=${inst#*,}
+			msg_starting $(nls "SAPDB instance %s" "$DB")
+			busy
+			$DBMCLI -d $DB -u $DBM db_warm > /dev/null &
+			RET=$?
+			[ $RET -eq 0 ] && ok || fail
+			[ $RETVAL -eq 0 ] && RETVAL=$RET
+		done		
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/sapdb
 	else
 		msg_already_running "SAPDB communication server"
 		exit 1
 	fi
-        ;;
-    stop)
-        # Stop daemons.
+	;;
+  stop)
+	# Stop daemons.
 	if [ -f /var/lock/subsys/sapdb ]; then
-	    for inst in $SAPDB_INSTANCES; do
-		DB=${inst%%,*}
-        	DBM=${inst#*,}
-        	msg_stopping "SAPDB instance $DB"; busy
-        	$DBMCLI -d $DB -u $DBM db_offline > /dev/null
-		RETVAL=$?
-		if [ $RETVAL -eq 0 ]; then
-		    deltext; ok
-		else
-		    deltext; died
-		fi
-    	    done
-	    msg_stopping "SAPDB communication server"; busy
-	    $X_SERVER stop > /dev/null  2>&1
-	    RETVAL=$?
-	    if [ $RETVAL -eq 0 ]; then
-	        deltext; ok
-	    else
-	        deltext; died
-	    fi
-	    rm -f /var/lock/subsys/sapdb >/dev/null 2>&1
+		for inst in $SAPDB_INSTANCES; do
+			DB=${inst%%,*}
+			DBM=${inst#*,}
+			msg_stopping $(nls "SAPDB instance %s" "$DB")
+			busy
+			$DBMCLI -d $DB -u $DBM db_offline > /dev/null
+			RET=$?
+			[ $RET -eq 0 ] && ok || died
+			[ $RETVAL -eq 0 ] && RETVAL=$RET
+		done
+		msg_stopping "SAPDB communication server"
+		busy
+		$X_SERVER stop > /dev/null 2>&1
+		RET=$?
+		[ $RET -eq 0 ] && ok || died
+		[ $RETVAL -eq 0 ] && RETVAL=$RET
+		rm -f /var/lock/subsys/sapdb >/dev/null 2>&1
 	else
 		msg_not_running "SAPDB communication server"
 		exit 1
 	fi	
-        ;;
-    status)
+	;;
+  status)
 	status sapdb
 	exit $?
-        ;;
-    restart)
-        $0 stop
-        $0 start
+	;;
+  restart|reload)
+	$0 stop
+	$0 start
 	exit $?
-        ;;
-    force-reload)
+	;;
+  force-reload)
 	$0 stop && $0 start
 	exit $?
 	;;
-    *)
-        echo "Usage: sapdb {start|stop|status|force-reload|restart}"
-        exit 1
-        ;;
+  *)
+	msg_usage "$0 {start|stop|restart|reload|force-reload|status}"
+	exit 1
+	;;
 esac
 
 exit $RETVAL
