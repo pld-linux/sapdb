@@ -2,7 +2,7 @@
 # TODO:
 #	- Correct web server pages to work fine with konqueror.
 #	- All scripts which use dbmcli look for an exit result grepping
-#         dbmcli output and searching "OK" phrase. It's wrong while error
+#	  dbmcli output and searching "OK" phrase. It's wrong while error
 #	  messages can contains "OK" phrase too.
 #	- A sweet dream: dynamic linking...
 #	- update /etc/services with following values:
@@ -15,6 +15,7 @@
 %define		intversion	V74_03_17
 
 Summary:	SAP DB
+Summary(pl):	SAP DB
 Name:		sapdb
 Version:	%{mainver}.%{subver}
 Release:	0.6
@@ -85,20 +86,27 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define		_noautocompressdoc *.doc
 
 %description
-SAP DB
+SAP DB.
 
+%description -l pl
+SAP DB.
 
 %package docs
 Summary:	SAP DB documentation
+Summary(pl):	Dokumentacja SAP DB
 Group:		Applications/Databases
 
 %description docs
 HTML documentation for SAP DB.
-For more information please see www.sapdb.org.
+For more information please see http://www.sapdb.org/ .
 
+%description docs -l pl
+Dokumentacja HTML do SAP DB.
+Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
 
 %package ind
 Summary:	SAP DB - release independend programs
+Summary(pl):	SAP DB - programy niezale¿ne od wersji
 Group:		Applications/Databases
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
@@ -108,89 +116,124 @@ Requires(post,postun):	/sbin/chkconfig
 Requires:	python >= 2.2
 Requires:	python-modules >= 2.2
 
-%description ind 
+%description ind
 - remote communication server
 - command line tools for database administration
 - precompiler runtime (for applications built by SAP DB precompiler)
-For more information please see www.sapdb.org.
+For more information please see http://www.sapdb.org/ .
 
+%description ind -l pl
+- serwer zdalnego dostêpu
+- narzêdzia linii poleceñ do administracji bazami danych
+- czê¶æ uruchomieniowa prekompilatora (dla aplikacji zbudowanych przez
+  prekompilator SAP DB)
+Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
 
 %package srv
-Summary:	SAP DB Database Server
+Summary:	SAP DB database server
+Summary(pl):	Serwer bazodanowy SAP DB
 Group:		Applications/Databases
 Requires(pre):	%{name}-ind = %{version}
 Requires(post,postun):	/sbin/chkconfig
 
 %description srv
-SAP DB Database Server
+SAP DB database server.
 
+%description srv -l pl
+Serwer bazodanowy SAP DB.
 
 %package web
-Summary:	SAP DB Web Tools
+Summary:	SAP DB web tools
+Summary(pl):	Narzêdzia WWW dla SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}
 Requires:	%{name}-callif >= %{version}
 
 %description web
-SAP DB Web Tools
+SAP DB web tools.
 
+%description web -l pl
+Narzêdzia WWW dla SAP DB.
 
 %package precompiler
-Summary:      SAP DB Precompiler
-Group:        Applications/Databases
-PreReq:       sapdb-ind >= %{version}
+Summary:	SAP DB precompiler
+Summary(pl):	Prekompilator SAP DB
+Group:		Applications/Databases
+PreReq:		sapdb-ind >= %{version}
 
 %description precompiler
-SAP DB Precompiler
+SAP DB precompiler.
 
+%description precompiler -l pl
+Prekompilator SAP DB.
 
 %package callif
-Summary:	SAP DB ODBC and JDBC Interfaces
+Summary:	SAP DB ODBC and JDBC interfaces
+Summary(pl):	Interfejsy ODBC i JDBC do SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}
 
 %description callif
 - ODBC driver
 - JDBC driver
-For more information please see www.sapdb.org.
+For more information please see http://www.sapdb.org/ .
 
+%description callif -l pl
+- sterownik ODBC
+- sterownik JDBC
+Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
 
 %package scriptif
-Summary:      SAP DB Perl and Python Interfaces
-Group:        Applications/Databases
-PreReq:       sapdb-ind >= %{version}
+Summary:	SAP DB Perl and Python interfaces
+Summary(pl):	Interfejsy Perla i Pythona do SAP DB
+Group:		Applications/Databases
+PreReq:		sapdb-ind >= %{version}
 
 %description scriptif
-SAP DB Perl and Python Interfaces
+SAP DB Perl and Python interfaces.
 
+%description scriptif -l pl
+Interfejsy Perla i Pythona do SAP DB.
 
 %package testdb
-Summary:      SAP DB test database
-Group:        Applications/Databases
-PreReq:       sapdb-ind sapdb-srv
+Summary:	SAP DB test database
+Summary:	Testowa baza danych SAP DB
+Group:		Applications/Databases
+PreReq:		sapdb-ind sapdb-srv
 
 %description testdb
 This package contains a script tp create and immediately start
-a database instance TST(having 20 MB Data space and 8 MB log space). 
-Please remember to shutdown database before system shutdown. 
+a database instance TST (having 20 MB data space and 8 MB log space).
+Please remember to shutdown database before system shutdown.
 - sample database user: TEST, password TEST
 - DBM user: DBM, password DBM
-- database administrator: DBA, password DBA 
+- database administrator: DBA, password DBA
 A script to remove this database is also included.
-The scripts can be found in the %{sapdbdir}/testdb directory, and should be
-started as user sapdb.
+The scripts can be found in the %{sapdbdir}/testdb directory, and
+should be started as user sapdb.
 
+%description testdb -l pl
+Ten pakiet zawiera skrypt tp tworz±cy instancjê TST bazy danych
+(zawieraj±c± 20 MB miejsca na dane i 8 MB miejsca na logi) i
+natychmiast j± uruchamiaj±cy. Nale¿y pamiêtaæ o wy³±czeniu bazy
+danych przed zamkniêciem systemu.
+- przyk³adowy u¿ytkownik bazy danych: TEST, has³o TEST
+- u¿ytkownik DBM: DBM, has³o DBM
+- administrator bazy danych: DBA, has³o DBA
+Znajduje siê tu równie¿ skrypt usuwaj±cy tê bazê danych.
+Skrypty znajduj± siê w katalogu %{sapdbdir}/testdb i powinien je
+uruchamiaæ u¿ytkownik sapdb.
 
 %prep
 %setup -q -c -a0 -T
-mkdir -p $RPM_BUILD_DIR/%{name}-%{version}/buildtools
-tar xzf %{SOURCE1} -C $RPM_BUILD_DIR/%{name}-%{version}/buildtools
-tar xzf %{SOURCE2} -C $RPM_BUILD_DIR/%{name}-%{version}
-mv $RPM_BUILD_DIR/%{name}-%{version}/htmldoc-74 $RPM_BUILD_DIR/%{name}-%{version}/html
-tar xzf %{SOURCE12} -C $RPM_BUILD_DIR/%{name}-%{version}/html
-bzip2 -dc %{SOURCE5} | tar xf - -C $RPM_BUILD_DIR/%{name}-%{version}
+mkdir buildtools
+tar xzf %{SOURCE1} -C buildtools
+tar xzf %{SOURCE2}
+mv htmldoc-74 html
+tar xzf %{SOURCE12} -C html
+bzip2 -dc %{SOURCE5} | tar xf -
 
-cd $RPM_BUILD_DIR/%{name}-%{version}/%{intversion}
+cd %{intversion}
 %patch0
 %patch2
 %patch4
@@ -206,8 +249,9 @@ cd $RPM_BUILD_DIR/%{name}-%{version}/%{intversion}
 %patch21 -p1
 %patch23 -p1
 %patch24 -p1
+cd ..
 
-cd $RPM_BUILD_DIR/%{name}-%{version}/buildtools
+cd buildtools
 %patch10 -p1
 %patch11
 %patch12 -p1
@@ -278,9 +322,8 @@ cp $ORG/usr/bin/{dbanalyzer,dbmcli-HelpInst,dbmcli,irtrace,loadercli,backint} \
 for i in x_analys x_clear x_cons x_diagnose x_maketi x_python x_server x_show \
     x_start x_stop x_wiz x_wizard x_wizstop x_wiztrc xbackup xci xdbload \
     xinstinfo xkernprot xoldci xpu xregcomp xsql xsqlpro xsysrc xtracesort \
-    xuser xvttest
-do
-    ln -sf %{sapdbdir}/bin/sysmon $RPM_BUILD_ROOT%{sapdbdir}/bin/$i
+    xuser xvttest; do
+	ln -sf %{sapdbdir}/bin/sysmon $RPM_BUILD_ROOT%{sapdbdir}/bin/$i
 done
 
 cat $ORG/usr/bin/ireport.py | sed "s:/usr/bin/env :%{sapdbdir}/bin/:" > \
@@ -315,9 +358,9 @@ cp `ls $ORG/usr/misc/sapdb/pythondef/*.py` \
 cp `ls $ORG/usr/misc/*.so` `ls $ORG/usr/misc/*.py` \
     $ORG/usr/misc/{updcol,puclst,pchtab,get_page,instperl.pl,bgrep,patchb,x_watch} \
     $RPM_BUILD_ROOT%{sapdbdir}/misc
-    
+
 # config
-sed 's:$OWN32:%{sapdbdir}/web:g 
+sed 's:$OWN32:%{sapdbdir}/web:g
 s:$OWN64:%{sapdbdir}/web:g
 s:$LOG:/var/log/sapdb:g
 s:Port=85:Port=9999:g' $ORG/usr/config/WebAgent74.ini \
@@ -337,13 +380,12 @@ ln -sf %{sapdbdir}/misc/updcol $RPM_BUILD_ROOT%{sapdbdir}/updcol
 
 # sdk
 FILES=`find $ORG/usr/sdk -type f -printf "%%P\n" | grep -v "\.f"`
-for f in $FILES
-do 
+for f in $FILES; do
     mkdir -p $RPM_BUILD_ROOT%{sapdbdir}/sdk/`dirname $f`
     cp $ORG/usr/sdk/$f $RPM_BUILD_ROOT%{sapdbdir}/sdk/$f
 done
 
-# incl 
+# incl
 cp -a $ORG/usr/incl/* $RPM_BUILD_ROOT%{_includedir}/sapdb
 mv $RPM_BUILD_ROOT%{sapdbdir}/sdk/7403/incl/* \
     $RPM_BUILD_ROOT%{_includedir}/sapdb
@@ -367,9 +409,9 @@ done
 # init stuff
 #
 mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates \
-         $RPM_BUILD_ROOT/etc/rc.d/init.d \
-         $RPM_BUILD_ROOT/var/log/sapdb \
-         $RPM_BUILD_ROOT/var/run/wahttp
+	 $RPM_BUILD_ROOT/etc/rc.d/init.d \
+	 $RPM_BUILD_ROOT/var/log/sapdb \
+	 $RPM_BUILD_ROOT/var/run/wahttp
 install -m 600 %{SOURCE6} $RPM_BUILD_ROOT/etc/sysconfig/sapdb
 install -m 744 %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/sapdb
 install -m 754 %{SOURCE4} $RPM_BUILD_ROOT/etc/rc.d/init.d/sapdb-web
@@ -436,7 +478,7 @@ PATH=\$PATH:\$IND/bin:\$DEP/bin
 #PERL5LIB=\$PERL5LIB:\$SAPDBROOT/misc
 #PYTHONPATH=\$PYTHONPATH:\$SAPDBROOT/misc
 
-export INDEP DEP SAPDBROOT PATH 
+export INDEP DEP SAPDBROOT PATH
 #export PYTHONPATH
 #export CLASSPATH
 #export PERL5LIB
@@ -458,18 +500,18 @@ fi
 
 %post ind
 if [ "$1" = "2" ]; then
-    # update
-    FILE=%{sqlspool}/ini/SAP_DBTech.ini
-    if [ -f $FILE ]; then
-	i=0
-	while [ -f $FILE.$i ]; do let i++; done
-	echo "- saving $FILE as $FILE.$i"
-	cp $FILE $FILE.$i
-	[ $? -ne 0 ] && exit 1
-    else
-	echo "update error: file $FILE not found!" >&2
-	exit 1
-    fi
+	# update
+	FILE=%{sqlspool}/ini/SAP_DBTech.ini
+	if [ -f $FILE ]; then
+		i=0
+		while [ -f $FILE.$i ]; do let i++; done
+		echo "- saving $FILE as $FILE.$i"
+		cp $FILE $FILE.$i
+		[ $? -ne 0 ] && exit 1
+	else
+		echo "update error: file $FILE not found!" >&2
+		exit 1
+	fi
 fi
 
 DBROOT=%{indep}
@@ -478,15 +520,15 @@ export DBROOT
 o=`$DBROOT/bin/dbmcli -s dbm_setpath IndepDataPath %{indepdat}`
 t=`echo $o | grep OK`
 if [ "$t" = "" ]; then
-    echo "- could not set inpedendent data path: $o" >&2
-    exit 1
+	echo "- could not set inpedendent data path: $o" >&2
+	exit 1
 fi
 
 o=`$DBROOT/bin/dbmcli -s dbm_setpath IndepProgPath %{indep}`
 t=`echo $o | grep OK`
 if [ "$t" = "" ]; then
-    echo "- could not set independent program path: $o" >&2
-    exit 1
+	echo "- could not set independent program path: $o" >&2
+	exit 1
 fi
 chown sapdb:sapsys %{sqlspool}/ini/SAP_DBTech.ini
 
@@ -504,8 +546,8 @@ exit 0
 %{indep}/bin/irconf -r -p %{indep}/runtime/7240 >/dev/null 2>&1 || :
 
 if [ "$1" != "0" ]; then
-    # do nothing in upgrade case
-    exit 0
+	# do nothing in upgrade case
+	exit 0
 fi
 
 DBROOT=%{indep}
@@ -513,12 +555,12 @@ export DBROOT
 
 o=`fuser $DBROOT/bin/* $DBROOT/pgm/* 2>/dev/null`
 if [ $? -eq 0 ]; then
-    if [ `echo $o | wc -l` -eq 1 -a `echo $o | grep -c "^$DBROOT/pgm/vserver"` -eq 1 ]; then
-        $DBROOT/bin/x_server stop >/dev/null 2>&1
-    else
-        echo "- aborting (software is in use)" >&2
-        exit 1
-    fi
+	if [ `echo $o | wc -l` -eq 1 -a `echo $o | grep -c "^$DBROOT/pgm/vserver"` -eq 1 ]; then
+		$DBROOT/bin/x_server stop >/dev/null 2>&1
+	else
+		echo "- aborting (software is in use)" >&2
+		exit 1
+	fi
 fi
 
 rm -rf %{indepdat}/wrk/_OPTSAPD >/dev/null 2>&1
@@ -552,25 +594,25 @@ export DBROOT
 o=`su - sapdb -c "umask 0003; $DBROOT/bin/dbmcli -s -R $DBROOT inst_reg -k $DBROOT"`
 t=`echo $o | grep OK`
 if [ "$t" = "" ]; then
-    echo "- could not register the installation: $o" >&2
-    exit 1
+	echo "- could not register the installation: $o" >&2
+	exit 1
 fi
 
 dcom_link=%{depend}/wrk/Registry.dcom
 if [ -e $dcom_link ] && [ ! -L $dcom_link ]; then
-       rm $dcom_link >/dev/null 2>&1
+	rm $dcom_link >/dev/null 2>&1
 fi
 
 if test -x $DBROOT/lib/dbpinstall.so ; then
-    o=`$DBROOT/bin/xregcomp -c $DBROOT/lib/dbpinstall 2>&1`
+	o=`$DBROOT/bin/xregcomp -c $DBROOT/lib/dbpinstall 2>&1`
 else
-    o=`$DBROOT/bin/xregcomp -c $DBROOT/lib/lib64/dbpinstall 2>&1`
+	o=`$DBROOT/bin/xregcomp -c $DBROOT/lib/lib64/dbpinstall 2>&1`
 fi
 
 t=`echo $o | grep "Registration done"`
 if [ "$t" = "" ]; then
-    echo "- could not register dbpinstall: $o" >&2
-    exit 1
+	echo "- could not register dbpinstall: $o" >&2
+	exit 1
 fi
 chown sapdb:sapsys %{sapdbvar}/config/Registry1.dcom
 
@@ -578,8 +620,8 @@ exit 0
 
 %preun srv
 if [ "$1" != "0" ]; then
-    # do nothing in upgrade case
-    exit 0
+	# do nothing in upgrade case
+	exit 0
 fi
 
 if [ "$1" = "0" ]; then
@@ -603,12 +645,12 @@ $DBROOT/bin/dbmcli -s -R $DBROOT inst_unreg $DBROOT >/dev/null 2>&1
 
 o=`fuser $DBROOT/bin/* $DBROOT/pgm/* 2>/dev/null`
 if [ $? -eq 0 ]; then
-    if [ `echo $o | wc -l` -eq 1 -a `echo $o | grep -c "^$DBROOT/pgm/vserver"` -eq 1 ]; then
-        $DBROOT/bin/x_server stop >/dev/null 2>&1
-    else
-        echo "- aborting (software is in use)" >&2
-        exit 1
-    fi
+	if [ `echo $o | wc -l` -eq 1 -a `echo $o | grep -c "^$DBROOT/pgm/vserver"` -eq 1 ]; then
+		$DBROOT/bin/x_server stop >/dev/null 2>&1
+	else
+		echo "- aborting (software is in use)" >&2
+		exit 1
+	fi
 fi
 
 rm -f $DBROOT/env/_OPTSAPD* $DBROOT/load.prot >/dev/null 2>&1
@@ -617,11 +659,11 @@ rm -f %{indepdat}/config/Registry1.dcom >/dev/null 2>&1
 rm -f %{sqlspool}/ini/Registry_dcom.ini >/dev/null 2>&1
 rm -f %{sqlspool}/ini/odbc.ini >/dev/null 2>&1
 if [ ! -z "$IND_DATA_DBROOT" ]; then
-    rm -f \
-        $IND_DATA_DBROOT/config/_OPTSAPD* \
-        $IND_DATA_DBROOT/wrk/dbmsrv.prt \
-        >/dev/null 2>&1
-    rm -rf $IND_DATA_DBROOT/wrk/_OPTSAPD* >/dev/null 2>&1
+	rm -f \
+		$IND_DATA_DBROOT/config/_OPTSAPD* \
+		$IND_DATA_DBROOT/wrk/dbmsrv.prt \
+		>/dev/null 2>&1
+	rm -rf $IND_DATA_DBROOT/wrk/_OPTSAPD* >/dev/null 2>&1
 fi
 exit 0
 
