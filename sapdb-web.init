@@ -1,0 +1,102 @@
+#!/bin/sh
+#
+#
+# wahttpd	SAP DB web server
+#
+# chkconfig:	35 96 00
+# description:	Startup/shutdown script for SAP DB web server
+#
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Get network config
+. /etc/sysconfig/network
+
+# Get service config - may override defaults
+[ -f /etc/sysconfig/sapdb ] && . /etc/sysconfig/sapdb
+
+# Check that networking is up.
+if is_no "${NETWORKING}"; then
+	msg_network_down SAP DB
+	exit 1
+fi
+
+
+SAPDBWEB_BIN=/var/lib/sapdb/web/pgm/wahttp
+test -x $SAPDBWEB_BIN || exit 1
+
+function RunningPort () {
+	if [ -f /var/log/sapdb/httperr.log ]; then
+		_o=`cat /var/log/sapdb/httperr.log | grep on\ port | sed -e s/^.*port// | sed -e s/\\\[.*//`
+		for _i in $_o; do
+			_port=`echo $_i | sed -e s/^.*port//`
+		done
+	fi
+}
+
+function StartPort () {
+	if [ -f /var/spool/sql/ini/WebAgent74.ini ]; then
+		_o=`cat /var/spool/sql/ini/WebAgent74.ini | grep Port`
+		for _i in $_o; do
+                        _port=`echo $_i | sed -e s/^.*Port=//`
+                done
+	fi	
+}
+
+
+case "$1" in
+    start)
+	# Check if the service is already running?
+	if [ ! -f /var/lock/subsys/sapdb-web ]; then
+	    StartPort
+	    msg_starting "SAP DB WebServer on port $_port"
+	    
+	    LD_LIBRARY_PATH=/var/lib/sapdb/web/lib/lib64:$LD_LIBRARY_PATH
+	    LD_LIBRARY_PATH=/var/lib/sapdb/web/lib:$LD_LIBRARY_PATH
+	    LD_LIBRARY_PATH=/var/lib/sapdb/interfaces/odbc/lib/lib64:$LD_LIBRARY_PATH
+	    LD_LIBRARY_PATH=/var/lib/sapdb/interfaces/odbc/lib:$LD_LIBRARY_PATH
+	    export LD_LIBRARY_PATH
+	    
+	    daemon --user nobody $SAPDBWEB_BIN -f /var/spool/sql/ini/WebAgent74.ini
+	    RETVAL=$?
+	    [ $RETVAL -eq 0 ] && touch /var/lock/subsys/sapdb-web
+	else
+	    msg_already_running "SAP DB WebServer"
+	    exit 1
+	fi
+    	;;
+     stop)
+        # Stop daemons.
+	if [ -f /var/lock/subsys/sapdb-web ]; then
+	
+	    RunningPort
+            msg_stopping "SAP DB WebServer on port $_port"
+	    killproc $SAPDBWEB_BIN
+	    rm -f /var/lock/subsys/sapdb-web >/dev/null 2>&1	
+	else
+		msg_not_running "SAP DB WebServer"
+		exit 1
+	fi	
+        ;;
+     status)
+       	status $SAPDBWEB_BIN 
+	exit $?
+       	;;
+     restart)
+	$0 stop
+        $0 start
+	exit $?
+        ;;
+     force-restart)
+	$0 stop && $0 start
+	exit $?
+	;;
+     *)
+       	echo "Usage: sapdb-web {start|stop|status|restart|force-restart}"
+       	exit 1
+       	;;
+esac
+
+exit $RETVAL
+
