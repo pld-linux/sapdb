@@ -1,0 +1,13 @@
+--- SAPDB_ORG/sys/desc/ls.mac
++++ SAPDB_ORG/sys/desc/ls.mac
+@@ -41,8 +41,10 @@
+ lserver         distrib    # SAP DB Loader
+ 
+ &if $OS not in [ WIN32 ]
++&ifdef SAPDB_INTERNAL
+ !$TOOL/bin/instlserver
+ &endif
++&endif
+ 
+ repmcli           distrib    # SAP DB Loader command line interface old name
+ loadercli         distrib    # SAP DB Loader command line interface

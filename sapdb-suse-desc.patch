@@ -1,0 +1,264 @@
+--- SAPDB_ORG/sys/desc/SAPDB/Interfaces/JDBC/JNI.com
++++ SAPDB_ORG/sys/desc/SAPDB/Interfaces/JDBC/JNI.com
+@@ -32,7 +32,7 @@
+ &if $OS == WIN32
+ nativeComm.c inc=gsp00,heo102.h,heo03.h -I$TOOL/java/include -I$TOOL/java/include/win32
+ &elif $OSSPEC == LINUX
+-nativeComm.c inc=gsp00,heo102.h,heo03.h -I$TOOL/java/include -I$TOOL/java/include/linux 
++nativeComm.c inc=gsp00,heo102.h,heo03.h -I/usr/lib/java/include -I/usr/lib/java/include/linux
+ &elif $OSSPEC == AIX
+ nativeComm.c inc=gsp00,heo102.h,heo03.h -I$TOOL/java/include -I$TOOL/java/include/aix 
+ &elif $OSSPEC == HPUX
+--- SAPDB_ORG/sys/desc/allknl.mac
++++ SAPDB_ORG/sys/desc/allknl.mac
+@@ -23,7 +23,7 @@
+ 
+ &fast
+ cpc
+-&if $MACH in [ _IBMR2, SUN, PA11, PA20W, ALPHA, I386 ] 
++&if $MACH in [ _IBMR2, SUN, PA11, PA20W, ALPHA, I386, IA64, S390, S390X, X86_64 ] 
+ &if $OSSPEC in [ AIX, SVR4, HPUX, OSF1, WIN32, LINUX ] 
+ dcom		ff
+ &if $OSSPEC not in [ WIN32 ] 
+@@ -44,7 +44,7 @@
+ &endfast
+ 
+ &slow
+-&if $MACH in [ _IBMR2, SUN, PA11, PA20W, ALPHA, I386 ] 
++&if $MACH in [ _IBMR2, SUN, PA11, PA20W, ALPHA, I386, IA64, S390, S390X, X86_64 ] 
+ &if $OSSPEC in [ AIX, SVR4, HPUX, OSF1, WIN32, LINUX ] 
+ dcom		ff
+ &if $OSSPEC not in [ WIN32 ] 
+@@ -58,7 +58,7 @@
+ &endslow
+ 
+ &quick
+-&if $MACH in [ _IBMR2, SUN, PA11, PA20W, ALPHA, I386 ] 
++&if $MACH in [ _IBMR2, SUN, PA11, PA20W, ALPHA, I386, IA64, S390, S390X, X86_64 ] 
+ &if $OSSPEC in [ AIX, SVR4, HPUX, OSF1, WIN32, LINUX ] 
+ dcom		ff
+ &if $OSSPEC not in [ WIN32 ] 
+--- SAPDB_ORG/sys/desc/dbmperl.mac
++++ SAPDB_ORG/sys/desc/dbmperl.mac
+@@ -21,7 +21,7 @@
+ #    ========== licence end
+ #
+ 
+-&if ($OSSPEC = OSF1) or (not defined BIT64)
++&if ($OSSPEC in [ OSF1, LINUX ] ) or (not defined BIT64)
+ 
+ &if $OS in [ WIN32, OS2 ]
+ dbmap   # ActivePerl
+--- SAPDB_ORG/sys/desc/dcom.mac
++++ SAPDB_ORG/sys/desc/dcom.mac
+@@ -61,7 +61,7 @@
+ #lcAddIn PTS 1109360 this addin isn't needed anymore
+ &endif
+ 
+-#&if $OSSPEC in [ AIX, SVR4, HPUX, OSF1 ] or ( $MACH = I386 and $OSSPEC = LINUX )
++#&if $OSSPEC in [ AIX, SVR4, HPUX, OSF1 ] or ( $MACH in [ I386, IA64, S390, S390X, X86_64] and $OSSPEC = LINUX )
+ #regsvr32				PTS 1107637
+ #regsvr32.use			PTS 1107637
+ regcomp
+@@ -70,13 +70,13 @@
+ 
+ &fast
+ # NMP added PTS 1108439
+-&if $OSSPEC in [ WIN32, AIX, SVR4, HPUX, OSF1, NMP ]  or ( $MACH = I386 and $OSSPEC = LINUX )
++&if $OSSPEC in [ WIN32, AIX, SVR4, HPUX, OSF1, NMP ]  or ( $MACH in [ I386, IA64, S390, S390X, X86_64] and $OSSPEC = LINUX )
+ dbpinstall
+ &endif
+ &endfast
+ &quick
+ # NMP added PTS 1108439
+-&if $OSSPEC in [ WIN32, AIX, SVR4, HPUX, OSF1, NMP ]  or ( $MACH = I386 and $OSSPEC = LINUX )
++&if $OSSPEC in [ WIN32, AIX, SVR4, HPUX, OSF1, NMP ]  or ( $MACH in [ I386, IA64, S390, S390X, X86_64] and $OSSPEC = LINUX )
+ dbpinstall
+ &endif
+ &endquick
+@@ -89,12 +89,14 @@
+ &endif
+ 
+ # NMP added PTS 1108439
+-&if $OSSPEC in [ AIX, SVR4, HPUX, OSF1, NMP ]  or ( $MACH = I386 and $OSSPEC = LINUX )
++&if $OSSPEC in [ AIX, SVR4, HPUX, OSF1, NMP ]  or ( $MACH in [ I386, IA64, S390, S390X, X86_64] and $OSSPEC = LINUX )
+ #!regsvr32 $INSTLIB/dbpinstall                  PTS 1107355
++&ifndef NOREG
+ &ifndef XCOMP		#Do not execute in case of an Cross-Compilation 
+ !xregcomp $INSTLIB/dbpinstall
+ &endif
+ &endif
++&endif
+ 
+ &if $OSSPEC in [ WIN32 ]
+ geninspeccode
+@@ -125,4 +127,4 @@
+ &endif
+ 
+ # create com descriptions for lcapps make
+-::livecache/lcsrc/lcsrc_coms.mac
+\ No newline at end of file
++::livecache/lcsrc/lcsrc_coms.mac
+--- SAPDB_ORG/sys/desc/enklib.lib
++++ SAPDB_ORG/sys/desc/enklib.lib
+@@ -417,7 +417,7 @@
+ #
+ # these ports support OMS interfaces used for TRIGGER and Livecache
+ # PTS 1107243 ( NMP added )
+-&if ( $MACH in [  PA11, PA20W, _IBMR2, SUN, NMP] ) or ( $MACH in [ ALPHA ] and $OSSPEC in [ OSF1 ] ) or ( $MACH in [ I386, IA64 ] and $OSSPEC in [ LINUX ] )
++&if ( $MACH in [  PA11, PA20W, _IBMR2, SUN, NMP] ) or ( $MACH in [ ALPHA ] and $OSSPEC in [ OSF1 ] ) or ( $MACH in [ I386, IA64, S390, S390X, X86_64 ] and $OSSPEC in [ LINUX ] )
+ 
+ # General Dynamic Link Library handling
+ #   sqlLoadLibrary(), sqlLoadLibraryEx(), sqlGetProcAddress(), sqlFreeLibrary()
+@@ -449,7 +449,7 @@
+ # UNIX Assembler part of DCOM interface
+ #   sql38aVdcomCall()
+ # PTS 1107243 ( NMP added )  for NMP interface is written in C++
+-&if ( $MACH in [ NMP ] )
++&if ( $MACH in [ NMP, S390X, X86_64 ] )
+ ven38NMP.cpp
+ &else
+ ven38a
+--- SAPDB_ORG/sys/desc/libdbfsapi.dld
++++ SAPDB_ORG/sys/desc/libdbfsapi.dld
+@@ -25,11 +25,7 @@
+ 
+ -BuildNrFunction=DBFSAPI_DummyBuildNumber
+ 
+-&if defined BIT64 && $OSSPEC != OSF1 && !($OSSPEC == LINUX && $MACH == IA64)
+--L$INSTROOT/lib/lib64
+-&else
+--L$INSTROOT/lib
+-&endif
++-L$INSTLIB
+ 
+ # Dependencies
+ libsqlrte.dld	nobind	distrib
+--- SAPDB_ORG/sys/desc/libodcompr.dld
++++ SAPDB_ORG/sys/desc/libodcompr.dld
+@@ -22,11 +22,7 @@
+ 
+ -BuildNrFunction=ODCOMPR_DummyBuildNumber
+ 
+-&if defined BIT64 && $OSSPEC != OSF1 && !($OSSPEC == LINUX && $MACH == IA64)
+--L$INSTROOT/lib/lib64
+-&else
+--L$INSTROOT/lib
+-&endif
++-L$INSTLIB
+ 
+ # Dependencies
+ odbc.mac	nobind	distrib
+--- SAPDB_ORG/sys/desc/libwapi.dld
++++ SAPDB_ORG/sys/desc/libwapi.dld
+@@ -23,11 +23,7 @@
+ 
+ -BuildNrFunction=WAPI_DummyBuildNumber
+ 
+-&if defined BIT64 && $OSSPEC != OSF1 && !($OSSPEC == LINUX && $MACH == IA64)
+--L$INSTROOT/lib/lib64
+-&else
+--L$INSTROOT/lib
+-&endif
++-L$INSTLIB
+ 
+ # Dependencies
+ odbc.mac	nobind
+--- SAPDB_ORG/sys/desc/pyredist.mac
++++ SAPDB_ORG/sys/desc/pyredist.mac
+@@ -53,6 +53,9 @@
+ :redist/bin/I386_WIN32/python15.dll  ->$DBROOT/pgm/ distrib
+ &endif
+ &else
++&if $OSSPEC == LINUX
++!cp -f /usr/bin/python $DBROOT/pgm
++&else
+ #########################
+ &if defined BIT64
+ #########################
+@@ -65,4 +68,5 @@
+ &endif
+ #########################
+ &endif
++&endif
+ 
+--- SAPDB_ORG/sys/desc/regcomp.lnk
++++ SAPDB_ORG/sys/desc/regcomp.lnk
+@@ -31,7 +31,7 @@
+ :Resource/regcomp.rc remake
+ libsqlptc
+ &else
+-&if $OSSPEC in [ AIX ] or $MACH in [ SUN ] or ( $OSSPEC in [ LINUX ] and $MACH in [ I386 ] )
++&if $OSSPEC in [ AIX ] or $MACH in [ SUN ] or ( $OSSPEC in [ LINUX ] and $MACH in [ I386, IA64, S390, S390X, X86_64 ] )
+ -ldl
+ &endif
+ :libptc/sql__trunc.c      
+--- SAPDB_ORG/sys/desc/reginst.mac
++++ SAPDB_ORG/sys/desc/reginst.mac
+@@ -41,6 +41,8 @@
+ 
+ dbmcli
+ 
++&ifndef NOREG
++
+ #do not execute in case of an cross-compilation
+ &ifndef XCOMP 
+ #========================
+@@ -77,4 +79,6 @@
+ #========================
+ 
+ #  srvparam
+-&endif 
++&endif
++&endif
++
+--- SAPDB_ORG/sys/desc/sapdbcbin.dld
++++ SAPDB_ORG/sys/desc/sapdbcbin.dld
+@@ -68,4 +68,10 @@
+ &endif
+ 
+ #jni LZU wrapper
+-:SAPDB/Interfaces/JDBC/JNI/nativeComm.c
++&if $OSSPEC == LINUX
++:SAPDB/Interfaces/JDBC/JNI/nativeComm.c inc=gsp00,heo102.h,heo03.h -I/usr/lib/java/include -I/usr/lib/java/include/linux
++&else
++:SAPDB/Interfaces/JDBC/JNI/nativeComm.c inc=gsp00,heo102.h,heo03.h
++&endif
++
++
+--- SAPDB_ORG/sys/desc/sapdbperl.mac
++++ SAPDB_ORG/sys/desc/sapdbperl.mac
+@@ -21,7 +21,7 @@
+ #    ========== licence end
+ #
+ 
+-&if ($OSSPEC = OSF1) or (not defined BIT64)
++&if ($OSSPEC in [ OSF1, LINUX ] ) or (not defined BIT64)
+ 
+ &if $OS in [ WIN32, OS2 ]
+ sapdbap   [s s s] # ActivePerl
+--- SAPDB_ORG/sys/desc/special.mac
++++ SAPDB_ORG/sys/desc/special.mac
+@@ -49,7 +49,6 @@
+ &endif
+ wizard
+ #x_wizbit
+-wiztrc
+ x_wiz.txt.mi
+ &if $OS in [ UNIX ]
+ x_watch.mi
+--- SAPDB_ORG/sys/desc/waecho.dld
++++ SAPDB_ORG/sys/desc/waecho.dld
+@@ -46,11 +46,7 @@
+ ######################################################
+ 
+ 
+-&if defined BIT64 && $OSSPEC != OSF1 && !($OSSPEC == LINUX && $MACH == IA64)
+--L$INSTROOT/lib/lib64
+-&else
+--L$INSTROOT/lib
+-&endif
++-L$INSTLIB
+ 
+ # Dependencies
+ libwapi.dld		nobind

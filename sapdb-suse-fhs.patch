@@ -1,0 +1,421 @@
+--- SAPDB_ORG/sys/src/SAPDB/Registry/Reg_Registry.h
++++ SAPDB_ORG/sys/src/SAPDB/Registry/Reg_Registry.h
+@@ -57,7 +57,7 @@
+  *===========================================================================*/
+ 
+ #ifdef REG_UNIX
+-#define REG_SAPDB_REGISTRY "/usr/spool/sql/ini/SAPDB73.ini"
++#define REG_SAPDB_REGISTRY "/var/spool/sql/ini/SAPDB73.ini"
+ #else
+ #define REG_SAPDB_REGISTRY "SOFTWARE\\SAP\\SAP DBTech\\"
+ #endif
+--- SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_Conf.unix
++++ SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_Conf.unix
+@@ -1 +1 @@
+-/usr/spool/sql/ini/WebAgent74.ini
++/var/spool/sql/ini/WebAgent74.ini
+--- SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_IniPar.c
++++ SAPDB_ORG/sys/src/SAPDB/WebAgent/HTTP/WAHTTP_IniPar.c
+@@ -98,7 +98,7 @@
+ #ifdef REG_WIN32
+     #define WAHTTP_REGISTRY                 "SOFTWARE\\SAP\\SAP DBTech\\WebAgent74"
+ #else
+-    #define WAHTTP_REGISTRY                 "/usr/spool/sql/ini/WebAgent74.ini"
++    #define WAHTTP_REGISTRY                 "/var/spool/sql/ini/WebAgent74.ini"
+ #endif
+ 
+ #define WAHTTP_REG_SECTION_HTTP             "HTTP"
+--- SAPDB_ORG/sys/src/SAPDB/WebDAV/Handler/WDVHandler_CommonUtils.h
++++ SAPDB_ORG/sys/src/SAPDB/WebDAV/Handler/WDVHandler_CommonUtils.h
+@@ -58,7 +58,7 @@
+ 
+ 	#else
+ 
+-		#define WDVH_WEBDAV_REGISTRY			"/usr/spool/sql/ini/xie.ini"
++		#define WDVH_WEBDAV_REGISTRY			"/var/spool/sql/ini/xie.ini"
+ 
+ 	#endif
+ 
+@@ -248,4 +248,4 @@
+ 	--------------------------------------------------------------------------*/
+ 	WDVH_Bool destroyXmlmdlapiHandle(XMLMDLAPI_Handle handle);
+ 
+-#endif
+\ No newline at end of file
++#endif
+--- SAPDB_ORG/sys/src/SAPDB/XML/ModellingAPI/XMLMdlAPI_XieAdmin.h
++++ SAPDB_ORG/sys/src/SAPDB/XML/ModellingAPI/XMLMdlAPI_XieAdmin.h
+@@ -56,7 +56,7 @@
+ 
+ 	#else
+ 
+-		#define XIE_REGISTRY "/usr/spool/sql/ini/xie.ini"
++		#define XIE_REGISTRY "/var/spool/sql/ini/xie.ini"
+ 
+ 	#endif
+ 
+@@ -79,4 +79,4 @@
+ 	#define ADMIN_REG_KEY_MAXTHREADS					"MaxThreads"
+ 
+ 
+-#endif
+\ No newline at end of file
++#endif
+--- SAPDB_ORG/sys/src/cn/vcn90.cpp
++++ SAPDB_ORG/sys/src/cn/vcn90.cpp
+@@ -68,7 +68,7 @@
+  */
+ 
+ /* directories */
+-#define DB_UX_CFG_DIR   "/usr/spool/sql/config"
++#define DB_UX_CFG_DIR   "/var/spool/sql/config"
+ #define DB_CFG_DIR      "config"
+ #define DB_WRK_DIR      "wrk"
+ #define DB_ENV_DIR      "env"
+--- SAPDB_ORG/sys/src/en/gen950.h
++++ SAPDB_ORG/sys/src/en/gen950.h
+@@ -260,8 +260,8 @@
+ #define PARAM_DBNAME_F "/tmp/xparam.dbname"
+ #define PARAM_BACKUP_EXT ""
+ 
+-#define DIR_SPOOL_DIAG "/usr/spool/sql/diag"
+-#define DIR_SPOOL_IPC  "/usr/spool/sql/ipc"
++#define DIR_SPOOL_DIAG "/var/spool/sql/diag"
++#define DIR_SPOOL_IPC  "/var/spool/sql/ipc"
+ #define RUNNING_DB_ID "db:"
+ 
+ #define WRK_CONFIG "wrk/config"
+--- SAPDB_ORG/sys/src/en/ven09.c
++++ SAPDB_ORG/sys/src/en/ven09.c
+@@ -79,7 +79,7 @@
+  *  declarations for config file processing
+  */
+ #define LINE_SIZE_MAX 800
+-#define INI_PATH "/usr/spool/sql/ini"
++#define INI_PATH "/var/spool/sql/ini"
+ #define MOD__ "ven09.c:"
+ 
+ /*===========================================================================*
+@@ -422,10 +422,10 @@
+    to a position descripted by 'section'-name and 'entry'-name.
+  
+    If the file does not exists, it will be created
+-   files are located in 'INI_PATH', which is '/usr/spool/sql/ini'
++   files are located in 'INI_PATH', which is '/var/spool/sql/ini'
+    If this directory does not exists, the directory 'ini' will be 
+-   created in '/usr/spool/sql'
+-   If '/usr/spool/sql' does not exists the function failed
++   created in '/var/spool/sql'
++   If '/var/spool/sql' does not exists the function failed
+   
+    This function needs write permission in 'INI_PATH'
+    to create a temporary file, otherwise it fails 
+@@ -1717,7 +1717,7 @@
+   
+   setbuf(stdout, NULL);
+ 
+-  unlink("/usr/spool/sql/ini/TestRegistry.ini");
++  unlink(INI_PATH"/TestRegistry.ini");
+ 
+   rc = sqlGetConfigString ( "TestRegistry.ini",
+                             "Section",
+@@ -1737,7 +1737,7 @@
+                             &Ok );
+   printf("Put [Section] Key=Value %s: Code %d | %s\n",
+           rc == 0 ? "failed" : "succeeded", Ok, &ErrText[0]);
+-  system("cat /usr/spool/sql/ini/TestRegistry.ini");
++  system("cat "INI_PATH"/TestRegistry.ini");
+ 
+   rc = sqlPutConfigString ( "TestRegistry.ini",
+                             "Section2",
+@@ -1747,7 +1747,7 @@
+                             &Ok );
+   printf("Put [Section2] Key2=Value2 %s: Code %d | %s\n",
+           rc == 0 ? "failed" : "succeeded", Ok, &ErrText[0]);
+-  system("cat /usr/spool/sql/ini/TestRegistry.ini");
++  system("cat "INI_PATH"/TestRegistry.ini");
+ 
+   rc = sqlPutConfigString ( "TestRegistry.ini",
+                             "Section",
+@@ -1757,7 +1757,7 @@
+                             &Ok );
+   printf("Put [Section] Key2=Value2 %s: Code %d | %s\n",
+           rc == 0 ? "failed" : "succeeded", Ok, &ErrText[0]);
+-  system("cat /usr/spool/sql/ini/TestRegistry.ini");
++  system("cat "INI_PATH"/TestRegistry.ini");
+ 
+   rc = sqlGetConfigString ( "TestRegistry.ini",
+                             "Section",
+@@ -1768,7 +1768,7 @@
+                             &Ok );
+   printf("Get [Section] Key ->%s %s: Code %d | %s\n", 
+           String, rc == 0 ? "failed" : "succeeded", Ok, &ErrText[0]);
+-  system("cat /usr/spool/sql/ini/TestRegistry.ini");
++  system("cat "INI_PATH"/TestRegistry.ini");
+ 
+   handle = sqlOpenConfigEnum ("TestRegistry.ini",
+                               "Section",
+@@ -1795,7 +1795,7 @@
+                                &Ok );
+   printf("Remove [Section] Key %s: Code %d | %s\n",
+           rc == 0 ? "failed" : "succeeded", Ok, &ErrText[0]);
+-  system("cat /usr/spool/sql/ini/TestRegistry.ini");
++  system("cat "INI_PATH"/TestRegistry.ini");
+ 
+   sqlCloseConfigEnum ( handle,
+                        ErrText,
+@@ -1808,7 +1808,7 @@
+                                &Ok );
+   printf("Remove [Section] Key %s: Code %d | %s\n",
+           rc == 0 ? "failed" : "succeeded", Ok, &ErrText[0]);
+-  system("cat /usr/spool/sql/ini/TestRegistry.ini");
++  system("cat "INI_PATH"/TestRegistry.ini");
+ 
+   rc = sqlRemoveConfigString ( "TestRegistry.ini",
+                             "Section2",
+@@ -1817,7 +1817,7 @@
+                             &Ok );
+   printf("Remove [Section2] Key2 %s: Code %d | %s\n",
+           rc == 0 ? "failed" : "succeeded", Ok, &ErrText[0]);
+-  system("cat /usr/spool/sql/ini/TestRegistry.ini");
++  system("cat "INI_PATH"/TestRegistry.ini");
+ 
+   rc = sqlRemoveConfigString ( "TestRegistry.ini",
+                             "Section",
+@@ -1826,7 +1826,7 @@
+                             &Ok );
+   printf("Remove [Section] Key2 %s: Code %d | %s\n",
+           rc == 0 ? "failed" : "succeeded", Ok, &ErrText[0]);
+-  system("cat /usr/spool/sql/ini/TestRegistry.ini");
++  system("cat "INI_PATH"/TestRegistry.ini");
+ 
+   return 0;
+ }
+--- SAPDB_ORG/sys/src/en/ven41.c
++++ SAPDB_ORG/sys/src/en/ven41.c
+@@ -1393,7 +1393,7 @@
+ {
+ #undef MF__
+ #define MF__ MOD__"en41_get_spool_dir"
+-	(void) strcpy ( (char *)&file[0] , "/usr/spool/sql/" );
++	(void) strcpy ( (char *)&file[0] , "/var/spool/sql/" );
+ 	DBG1 (( MF__,"file '%s' \n", file ));
+ }
+ 
+--- SAPDB_ORG/sys/src/eo/veo01.c
++++ SAPDB_ORG/sys/src/eo/veo01.c
+@@ -427,13 +427,13 @@
+                                     TerminateWithDelimiter, RteError ) ;
+ #else
+   /* if IndependentPath is not set in the registry file,                   */
+-  /* the /usr/spool/sql/config - Directory is to use                       */
++  /* the /var/spool/sql/config - Directory is to use                       */
+   /* This is the standard config directory for releases < 7.2  ( UNIX )    */
+ 
+   if ( !eo01_IsIndependentPathAvailable ( INDEP_DATA_KEY_EO01 ) )
+   {
+     Ok = true ;
+-    strcpy( ConfigPath, "/usr/spool/sql/config" ) ;
++    strcpy( ConfigPath, "/var/spool/sql/config" ) ;
+     eo01_CheckPathEndingForDelimiter ( ConfigPath, TerminateWithDelimiter ) ;
+   }
+   else
+--- SAPDB_ORG/sys/src/eo/veo952.c
++++ SAPDB_ORG/sys/src/eo/veo952.c
+@@ -75,8 +75,8 @@
+ EXPORT int e952_call_clear     () ;
+ static int ClearCalledFromStop = FALSE ;
+ 
+-#define DIR_SPOOL_DIAG "/usr/spool/sql/diag"
+-#define DIR_SPOOL_IPC  "/usr/spool/sql/ipc"
++#define DIR_SPOOL_DIAG "/var/spool/sql/diag"
++#define DIR_SPOOL_IPC  "/var/spool/sql/ipc"
+ #define RUNNING_DB_ID "db:"
+ 
+ #endif
+@@ -1134,4 +1134,4 @@
+ 
+ /*===========================================================================*
+  *  END OF CODE                                                              *
+- *===========================================================================*/
+\ No newline at end of file
++ *===========================================================================*/
+--- SAPDB_ORG/sys/src/pa/vpa07wc
++++ SAPDB_ORG/sys/src/pa/vpa07wc
+@@ -2069,7 +2069,7 @@
+ 
+ #else
+ 
+-#define PA07ODBCINIPATH  "/usr/spool/sql/ini/"
++#define PA07ODBCINIPATH  "/var/spool/sql/ini/"
+ #define PA07ODBCINIFILE  "/.odbc.ini"
+ 
+ SWORD GetPrivateProfileString(UCHAR  *lpszSection, 
+--- SAPDB_ORG/sys/src/rx/op2np.mr
++++ SAPDB_ORG/sys/src/rx/op2np.mr
+@@ -6,7 +6,7 @@
+     exit 1
+ fi
+ 
+-if [ ! -f /usr/spool/sql/config/$1 ]
++if [ ! -f /var/spool/sql/config/$1 ]
+ then
+     echo "paramfile for serverdb <$1> not found"
+     exit 1
+--- SAPDB_ORG/sys/src/rx/x_install.mr
++++ SAPDB_ORG/sys/src/rx/x_install.mr
+@@ -355,44 +355,29 @@
+         exit `expr $RC + $RC_SPOOL`
+     fi
+ fi
+-if [ ! -d /usr/spool/sql ]
++if [ ! -d /var/spool/sql ]
+ then
+-    $ECHO "\nUser-writable directory /usr/spool/sql is missing"
+-    $ECHO "   Please create a symbolic link so that"
+-    $ECHO "   /usr/spool/sql leads to /var/spool/sql"
++    $ECHO "\nUser-writable directory /var/spool/sql is missing"
+     $ECHO "\nInstallation of $PRODUCT $RELEASE cancelled `date`"
+     exit `expr $RC + $RC_SPOOL`
+ fi
+ &else
+ &if $OSSPEC == LINUX
+-if [ ! -d /usr/spool ]
++if [ ! -d /var/spool ]
+ then
+-    if [ -d /var/spool ]
+-    then
+-        if ln -s /var/spool /usr/spool
++        if mkdir /var/spool
+         then
+             :
+         else
+-            $ECHO "\nPlease create a symbolic link so that"
+-            $ECHO "/usr/spool leads to /var/spool"
++            $ECHO "\nPlease create a directory /var/spool"
+             $ECHO "\nInstallation of $PRODUCT $RELEASE cancelled `date`"
+             exit `expr $RC + $RC_SPOOL`
+         fi
+-    else
+-        if mkdir /usr/spool
+-        then
+-            :
+-        else
+-            $ECHO "\nPlease create a directory /usr/spool"
+-            $ECHO "\nInstallation of $PRODUCT $RELEASE cancelled `date`"
+-            exit `expr $RC + $RC_SPOOL`
+-        fi
+-    fi
+ fi
+ &endif
+-if [ ! -d /usr/spool/sql ]
++if [ ! -d /var/spool/sql ]
+ then
+-    if mkdir /usr/spool/sql
++    if mkdir /var/spool/sql
+     then
+         :
+     else
+@@ -401,12 +386,12 @@
+     fi
+ fi
+ &endif
+-$CHMOD "ugo=rwx" /usr/spool/sql
+-chgrp $DBGRP    /usr/spool/sql
+-chown $DBOWN    /usr/spool/sql
++$CHMOD "ugo=rwx" /var/spool/sql
++chgrp $DBGRP    /var/spool/sql
++chown $DBOWN    /var/spool/sql
+ 
+-for DIR in /usr/spool/sql/config /usr/spool/sql/diag /usr/spool/sql/ipc \
+-    $DBROOT/wrk/config /usr/spool/sql/spool /usr/spool/sql/fifo
++for DIR in /var/spool/sql/config /var/spool/sql/diag /var/spool/sql/ipc \
++    $DBROOT/wrk/config /var/spool/sql/spool /var/spool/sql/fifo
+ do
+     if [ ! -d $DIR ]
+     then
+@@ -484,16 +469,16 @@
+     # User wants to use REMOTE-SQL: prepare files
+     $ECHO "Preparing files for REMOTE-SQL ..."
+ 
+-    if [ ! -f /usr/spool/sql/config/servertypes ]
++    if [ ! -f /var/spool/sql/config/servertypes ]
+     then
+ 	$ECHO "# node:dbname   /type" \
+-	      >/usr/spool/sql/config/servertypes
+-	$ECHO >>/usr/spool/sql/config/servertypes
+-	$ECHO "Created /usr/spool/sql/config/servertypes"
+-    fi
+-    chown $DBOWN /usr/spool/sql/config/servertypes
+-    chgrp $DBGRP /usr/spool/sql/config/servertypes
+-    $CHMOD $CHMODNRM /usr/spool/sql/config/servertypes
++	      >/var/spool/sql/config/servertypes
++	$ECHO >>/var/spool/sql/config/servertypes
++	$ECHO "Created /var/spool/sql/config/servertypes"
++    fi
++    chown $DBOWN /var/spool/sql/config/servertypes
++    chgrp $DBGRP /var/spool/sql/config/servertypes
++    $CHMOD $CHMODNRM /var/spool/sql/config/servertypes
+ 
+     # Installation procedure for remote sql server
+     if [ -f /etc/services ]
+--- SAPDB_ORG/sys/src/rx/x_look.mr
++++ SAPDB_ORG/sys/src/rx/x_look.mr
+@@ -214,7 +214,7 @@
+     exit 9
+ fi
+ 
+-if [ ! -r /usr/spool/sql/config/$DBNAME ]
++if [ ! -r /var/spool/sql/config/$DBNAME ]
+ then
+     echo "$IAM : Param file for '$DBNAME' missing or unreadable - ABORT"
+     exit 9
+@@ -352,7 +352,7 @@
+     echo "$IAM : listing kernel parameters"
+ fi
+ echo 'Parameters' >> $OUT
+-ls -ld /usr/spool/sql/config/$DBNAME >> $OUT
++ls -ld /var/spool/sql/config/$DBNAME >> $OUT
+ ls -ld  $DBROOT/env/xparam.pcf >> $OUT
+ head -1 $DBROOT/env/xparam.pcf >> $OUT
+ echo "KERNELVERSION : `$DBROOT/pgm/getparam $DBNAME KERNELVERSION`" >> $OUT
+--- SAPDB_ORG/sys/src/rx/x_watch.mi
++++ SAPDB_ORG/sys/src/rx/x_watch.mi
+@@ -178,8 +178,8 @@
+ _check_fil $DBROOT/pgm/getparam
+ _check_exe $DBROOT/pgm/getparam
+ 
+-_check_dir /usr/spool/sql/config
+-_check_fil /usr/spool/sql/config/$DBNAME
++_check_dir /var/spool/sql/config
++_check_fil /var/spool/sql/config/$DBNAME
+ 
+ RUNDIR=`$DBROOT/pgm/getparam $DBNAME RUNDIRECTORY`
+ _check_dir $RUNDIR
+--- SAPDB_ORG/sys/src/wd/instweb.0w
++++ SAPDB_ORG/sys/src/wd/instweb.0w
+@@ -91,10 +91,10 @@
+ 		callsystem("odbcreg.exe \"SAP DB Web 7.3\" -i -p \"".$path."\\pgm\"");
+ 	}
+ 	else{
+-		unless(-d '/usr/spool/sql/ini'){
+-			makedir('/usr/spool/sql/ini',0775) or print2stderr("cannot create \"/usr/spool/sql/ini\"") and diesoft($SAPDB::Install::diemsg);
++		unless(-d '/var/spool/sql/ini'){
++			makedir('/var/spool/sql/ini',0775) or print2stderr("cannot create \"/var/spool/sql/ini\"") and diesoft($SAPDB::Install::diemsg);
+ 		}
+-		copy($path.'/WebAgent73.ini','/usr/spool/sql/ini');
++		copy($path.'/WebAgent73.ini','/var/spool/sql/ini');
+ 	}
+ }	
+ 
+--- SAPDB_ORG/sys/src/wd/vwd20control.c
++++ SAPDB_ORG/sys/src/wd/vwd20control.c
+@@ -134,7 +134,7 @@
+ #define ADMIN_REG_SECTION_HTTP	            "HTTP"
+ #else
+ 
+-#define WEBAGENT_REGISTRY "/usr/spool/sql/ini/WebAgent74.ini"
++#define WEBAGENT_REGISTRY "/var/spool/sql/ini/WebAgent74.ini"
+ 
+ #ifdef BIT64
+ #define ADMIN_REG_SECTION_GLOBAL			"BIT64\\Global"

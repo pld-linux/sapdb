@@ -1,0 +1,122 @@
+--- buildtools/sys/src/base/ptoc/include/ptoc.h
++++ buildtools/sys/src/base/ptoc/include/ptoc.h
+@@ -26,13 +26,10 @@
+  */
+ 
+ #include           <string.h>
+-
+-#if defined (_WIN32)
+ # include          <stdio.h>
+ # include          <string.h>
+ # include          <math.h>
+ # include          <time.h>
+-#endif
+ 
+ 
+ #if defined (_WIN32)
+@@ -201,7 +198,7 @@
+ /*
+  *  This is to prevent sign extension.   IST 29.04.92
+  */
+-#if OSF1
++#if defined(OSF1) || defined(IA64)
+ # define sql__ord(x) ((unsigned _ptoc_long)(x))
+ #else
+ # define sql__ord(x) ((unsigned)(x))
+@@ -220,7 +217,7 @@
+ typedef  struct { unsigned char (*_fileptr);
+                   int           _lcount;
+                   int           _llimit;
+-                  int           (*_fbuf); } _iorechd;
++                  FILE           *_fbuf; } _iorechd;
+ 
+ extern int        _argc;
+ extern int        *_argv;
+@@ -235,14 +232,11 @@
+  extern _iorechd*  output;
+ 
+ #else /* UNIX */
+-
+- extern unsigned char sql__input[];
+- extern unsigned char sql__output[];
+- extern unsigned char sql__err[];
+-
++ extern _iorechd sql__input[];
++ extern _iorechd sql__output[];
++ extern _iorechd sql__err[];
+ # define output  sql__output     /* problem in dump_hdg.P   JH*/
+ # define input   sql__input      /* problem in DSF.P        JB 1992-Jul-10 */
+-
+ #endif
+ 
+ 
+--- buildtools/sys/src/base/ptoc/pcomp/genc.c
++++ buildtools/sys/src/base/ptoc/pcomp/genc.c
+@@ -253,7 +253,11 @@
+ int nummer;
+ int CurrentLevel;
+ int CurrentProc;
++#if 0 
+ unsigned char outfile[1140];
++#else
++_iorechd outfile[1140];
++#endif
+ int BlankString;
+ 
+ struct _ptoc_FRAME_GenC
+@@ -3025,7 +3029,7 @@
+     if (control[81])
+         {
+         ptoc_Var55 = sql__ut(output);
+-        fprintf(ptoc_Var55->_fbuf , "%*.*s%s%s%s" , 30 , 14 , "DeklFormPar : " , "inframe = " , sql__nname((int ) inframe , &ptoc_CBlock0) , ", ");
++        fprintf(ptoc_Var55->_fbuf , "%*.*s%s%s%s" , 30 , 14 , "DeklFormPar : " , "inframe = " , sql__nname((int ) inframe , (void *) &ptoc_CBlock0) , ", ");
+         sql__writeln(ptoc_Var55);
+         }
+     if (_ptoc_LOCAL._ptoc_LINK->StatLink && STab[Idx1].KINDTYPE.C_ModuleDcl.SParent != -1)
+--- buildtools/sys/src/base/sizeof/itt87.c
++++ buildtools/sys/src/base/sizeof/itt87.c
+@@ -33,9 +33,12 @@
+   unsigned char namtyp40[40];
+ typedef
+   namtyp20 *namtyp20ptr;
+-extern unsigned char *infile[];
+-extern unsigned char *top[];
+-extern unsigned char *body[];
++/* extern unsigned char *infile[]; */
++extern _iorechd infile[1];
++/* extern unsigned char *top[]; */
++extern _iorechd top[1];
++/* extern unsigned char *body[];*/
++extern _iorechd body[1];
+ namtyp20 fil_src;
+ namtyp20 fil_top;
+ namtyp20 fil_body;
+@@ -538,3 +541,4 @@
+ #ident "@(#)itt87 ptoc"
+ #ident "@(#)itt87 -qn"
+ #ident "@(#)itt87 -e"
++
+--- buildtools/sys/src/tt/cpan/SAPDB/Install/zip/Makefile.PL
++++ buildtools/sys/src/tt/cpan/SAPDB/Install/zip/Makefile.PL
+@@ -59,8 +59,8 @@
+ 		$CFLAGS = "-O2";
+ 	} elsif ($^O =~ /^hpux/i) {
+ 		$CFLAGS = "-O +Z +DA1.1 +DS2.0";
+-	} elsif ($^O =~ /^linux/i && $Config{'archname'} =~ /^i\d86/) {
+-		$CFLAGS = "-O -fpic";
++	} elsif ($^O =~ /^linux/i && $Config{'archname'} =~ /.86/) {
++		$CFLAGS = "-O -fPIC";
+ 	} elsif ($^O =~ /^solaris/i) {
+ 		$CFLAGS = "-O -KPIC";
+ 	} elsif (/^svr4/ && $Config{'archname'} =~ /^RM/) {
+--- buildtools/sys/src/tt/toolvars-tml.pl.tt
++++ buildtools/sys/src/tt/toolvars-tml.pl.tt
+@@ -1753,7 +1753,7 @@
+ &elif $OSSPEC in [ WIN32 ]
+ $DLL_TYPE = "dll";
+ &elif $OSSPEC in [ LINUX ]
+-&if $MACH in [IA64, S390X]
++&if $MACH in [IA64, S390X, X86_64]
+ 	push @CCFLAGS, "-fPIC";
+ &endif
+ &endif

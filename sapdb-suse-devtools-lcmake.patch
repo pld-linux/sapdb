@@ -1,0 +1,46 @@
+--- Makefile.in
++++ Makefile.in
+@@ -47,7 +47,7 @@
+ # copies make result to a different directory
+ #
+ installonly:
+-	-@f [ ! -d $(INSTDIR) ]; then mkdir -p $(INSTDIR); fi
++	-if [ ! -d $(INSTDIR) ]; then mkdir -p $(INSTDIR); fi
+ 	(cd $(TOOL) > /dev/null; tar cf - .) | (cd $(INSTDIR) >/dev/null; tar xf -)
+ 	@echo Registration script missing
+ 
+--- basescripts.mk.in
++++ basescripts.mk.in
+@@ -15,6 +15,8 @@
+ TMLSCRIPTS=toolvars mfextra
+ PLSCRIPTS=imf.pl mfcexp.pl mfrc.pl mfc.pl compc.pl mfcinc.pl mf_opts.pl
+ PMSCRIPTS=imake.pm ToolLib.pm ICopy.pm CCVers.pm GetInstDir.pm
++LCSCRIPTS=lcmake.pm
++PERLLIB=Mail/Sendmail.pm
+ 
+ all:
+ 
+@@ -29,3 +31,12 @@
+ 	do echo mfconcom $$source; \
+ 		$(MFCONCOM) $(SRC)/tt/$$source.tt $(TOOL)/bin/$$source $(MFCONCOMFLAGS); \
+ 	done
++	@for source in $(LCSCRIPTS); \
++	do echo mfconcom $$source; \
++		$(MFCONCOM) $(SRC)/APODev/$$source $(TOOL)/bin/$$source $(MFCONCOMFLAGS); \
++	done
++	@for source in $(PERLLIB); \
++	do echo cp $$source; \
++		cp $(SRC)/Perl/$$source $(TOOL)/lib/perl5/$$source; \
++	done
++
+--- makedirs.mk.in
++++ makedirs.mk.in
+@@ -6,6 +6,7 @@
+ 	-@if [ ! -d $(TOOL)/bin ]  ;then mkdir -p $(TOOL)/bin  ;fi
+ 	-@if [ ! -d $(TOOL)/lib ]  ;then mkdir -p $(TOOL)/lib  ;fi
+ 	-@if [ ! -d $(TOOL)/lib/perl5 ]  ;then mkdir -p $(TOOL)/lib/perl5  ;fi
++	-@if [ ! -d $(TOOL)/lib/perl5/Mail ]  ;then mkdir -p $(TOOL)/lib/perl5/Mail  ;fi
+ 	-@if [ ! -d $(TOOL)/incl ] ;then mkdir -p $(TOOL)/incl ;fi
+ 	-@if [ ! -d $(TOOL)/pgm ]  ;then mkdir -p $(TOOL)/pgm  ;fi
+ 	
+\ No newline at end of file

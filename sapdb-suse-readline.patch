@@ -1,0 +1,204 @@
+--- SAPDB_ORG/sys/desc/cn.com
++++ SAPDB_ORG/sys/desc/cn.com
+@@ -60,6 +60,13 @@
+ hcn13.h     inc=
+ vcn13.cpp   inc=hcn13.h,SAPDB_UTF8Basis.hpp
+ 
++&if not defined SAPDB_INTERNAL
++&if $OSSPEC in [ LINUX ]
++vcn12.cpp   -DUSE_GNU_READLINE
++vcn13.cpp   -DUSE_GNU_READLINE
++&endif
++&endif
++
+ hcn14.h     inc=gsp00,geo47.h
+ vcn14.c     inc=hcn14.h,gsp09.h,vsp004,heo03.h,hsp77.h
+ vcn14-u.c   inc=hcn14.h,gsp09.h,vsp004,heo03.h,hsp77.h -DDBMUNICODE
+--- SAPDB_ORG/sys/desc/dbmcli.lnk
++++ SAPDB_ORG/sys/desc/dbmcli.lnk
+@@ -158,6 +158,12 @@
+ &if $OSSPEC in [ SVR4, LINUX ]
+ -ldl
+ &endif
++&if $OSSPEC in [ LINUX ]
++&if not defined SAPDB_INTERNAL
++  -lreadline
++  -lhistory
++&endif
++&endif
+ #------------------------
+ &endif
+ #------------------------
+--- SAPDB_ORG/sys/src/cn/vcn12.cpp
++++ SAPDB_ORG/sys/src/cn/vcn12.cpp
+@@ -48,6 +48,13 @@
+ #include <stdlib.h>
+ #include <time.h>
+ #include <signal.h>
++#include <string.h>
++#ifdef USE_GNU_READLINE
++#include <stdio.h>
++#include <readline/history.h>
++#include <pwd.h>
++#include <sys/types.h>
++#endif
+ 
+ #include "gsp09.h"
+ #include "heo02.h"
+@@ -83,6 +90,8 @@
+ static tsp00_DbNamec g_szDbName;
+ static tsp00_NodeIdc g_szNode;
+ 
++char complete_prompt[200];
++
+ #define CMD_USER_LOGON   "user_logon"
+ #define CMD_USER_SAP     "user_sap"
+ #define CMD_SYSTEM_LOGON "user_system"
+@@ -1665,6 +1674,8 @@
+     
+   char **             argv         = cn12ConvertArguments(&options, argc, argU);
+ 
++  struct passwd * passwd;
++  
+ /***** Memory Debug BEGIN *****/
+ #ifdef BVMEMDEBUG
+   _CrtMemState s1, s2, s3;
+@@ -1706,6 +1717,18 @@
+ 
+   cn12CServerConnect (&options);
+ 
++#ifdef USE_GNU_READLINE
++  char histfile[200] = "";
++  char * phistfile = NULL;
++  passwd = getpwuid ( getuid() );
++  if ( passwd->pw_dir != NULL ) {
++      strncat(histfile, passwd->pw_dir, 183);
++      strcat(histfile, "/.dbmcli_history");
++      read_history (histfile);
++      phistfile = histfile;
++  }
++#endif
++
+   if (!IS_UNICODE(&options)) {
+     cn12Reconvert(&options, argc, argv);
+   } // end if
+@@ -1834,12 +1857,26 @@
+ 
+     // Prompt
+     if (options.infile == stdin) {
++      /*
+       cn13fputs(options.outfile, options.application, IS_UNICODE(&options));
+       cn13fputs(options.outfile, options.node[0] != 0  || options.dbname[0] != 0 ? " on " : "", IS_UNICODE(&options));
+       cn13fputs(options.outfile, options.node, IS_UNICODE(&options));
+       cn13fputs(options.outfile, options.node[0] != 0  && options.dbname[0] != 0 ? " : " : "", IS_UNICODE(&options));
+       cn13fputs(options.outfile, options.dbname, IS_UNICODE(&options));
+-      cn13fputs(options.outfile, ">", IS_UNICODE(&options));
++      cn13fputs(options.outfile, ">", IS_UNICODE(&options)); */
++#ifndef USE_GNU_READLINE
++      strcat(complete_prompt, options.application);
++#else
++      strcat(complete_prompt, "dbmcli");
++#endif
++      strcat(complete_prompt, options.node[0] != 0  || options.dbname[0] != 0 ? " on " : "");
++      strcat(complete_prompt, options.node);
++      strcat(complete_prompt, options.node[0] != 0  && options.dbname[0] != 0 ? " : " : "");
++      strcat(complete_prompt, options.dbname);
++      strcat(complete_prompt, "> ");
++#ifndef USE_GNU_READLINE
++      cn13fputs(options.outfile, complete_prompt, cn14IsUnicode(options.session));
++#endif
+     } // end if
+ 
+     // read command(s) from file (e.g. stdin)
+@@ -1891,7 +1928,8 @@
+         cn13fputs(options.outfile, szBuffer, IS_UNICODE(&options));
+         cn13fputs(options.outfile, EndOfCommandC, IS_UNICODE(&options));
+ 
+-        // Prompt
++	// Prompt
++#ifndef USE_GNU_READLINE
+         if (options.infile == stdin) {
+           cn13fputs(options.outfile, options.application, IS_UNICODE(&options));
+           cn13fputs(options.outfile, options.node[0] != 0  || options.dbname[0] != 0 ? " on " : "", IS_UNICODE(&options));
+@@ -1900,6 +1938,7 @@
+           cn13fputs(options.outfile, options.dbname, IS_UNICODE(&options));
+           cn13fputs(options.outfile, ">", IS_UNICODE(&options));
+         } /* end if */
++#endif
+       } else {
+ 
+         if (data [0] == '<') {
+@@ -1914,7 +1953,8 @@
+         nExit = 0;
+ 
+         cn13fputs(options.outfile, EndOfCommandC, IS_UNICODE(&options));
+-        if (rc == DBMAPI_OK_CN14 && options.infile == stdin && !bRelease) {
++#ifndef USE_GNU_READLINE
++	if (rc == DBMAPI_OK_CN14 && options.infile == stdin && !bRelease) {
+           // Prompt
+           cn13fputs(options.outfile, options.application, IS_UNICODE(&options));
+           cn13fputs(options.outfile, options.node[0] != 0  || options.dbname[0] != 0 ? " on " : "", IS_UNICODE(&options));
+@@ -1923,6 +1963,7 @@
+           cn13fputs(options.outfile, options.dbname, IS_UNICODE(&options));
+           cn13fputs(options.outfile, ">", IS_UNICODE(&options));
+         } // end if
++#endif
+         if (rc == DBMAPI_OK_CN14 && options.infile != stdin && !options.bContinue && !bRelease) {
+           nExit = cn12CheckAnswer(replyData);
+         } /* end if */
+@@ -1933,6 +1974,14 @@
+   // disconnect
+   cn12CServerDisconnect (&options);
+ 
++#ifdef USE_GNU_READLINE
++  if ( phistfile != NULL ) {
++      // save the history
++      write_history (histfile);
++      history_truncate_file (histfile, 200);
++  }
++#endif
++  
+   // close open files
+   if (options.infile != stdin) {
+     fclose (options.infile);
+--- SAPDB_ORG/sys/src/cn/vcn13.cpp
++++ SAPDB_ORG/sys/src/cn/vcn13.cpp
+@@ -46,9 +46,17 @@
+   ------------------------------------------------------------------
+  */
+ #include <string.h>
++#ifdef USE_GNU_READLINE
++#include <stdlib.h>
++#include <stdio.h>
++#include <readline/readline.h>
++#include <readline/history.h>
++#endif
+ #include "SAPDBCommon/SAPDB_UTF8Basis.hpp"
+ #include "hcn13.h"
+ 
++extern char complete_prompt[200];
++
+ /*!
+   -----------------------------------------------------------------------------
+   function:     cn13MemcpyUTF8ToUCS2
+@@ -276,7 +284,19 @@
+ {
+   char * pReturn = NULL;  
+ 
+-  pReturn = fgets(pBuffer, nLength, fileHandle);
++#ifdef USE_GNU_READLINE
++  if (fileHandle == stdin) {
++    pReturn = readline ((const char*)complete_prompt);
++    add_history(pReturn);
++    strncpy(pBuffer, pReturn, nLength);
++    free (pReturn);
++    pReturn = pBuffer;
++  } else {
++#endif
++    pReturn = fgets(pBuffer, nLength, fileHandle);
++#ifdef USE_GNU_READLINE
++  }
++#endif
+ 
+ #ifdef _WIN32
+ 

@@ -1,0 +1,52 @@
+--- SAPDB_ORG/sys/desc/pyredist.mac
++++ SAPDB_ORG/sys/desc/pyredist.mac
+@@ -19,10 +19,37 @@
+ #    ========== licence end
+ #
+ 
++# sapdb library modules
++optlib.py.rpy            distrib
+ 
+ # Python library modules
++
++&if defined PYTHON_LIBDIR
++!cp $PYTHON_LIBDIR/UserDict.py      $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/UserList.py      $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/__future__.py    $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/cmd.py           $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/copy_reg.py      $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/fnmatch.py       $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/glob.py          $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/linecache.py     $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/ntpath.py        $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/os.py            $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/posixpath.py     $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/re.py            $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/site.py          $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/sre.py           $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/sre_compile.py   $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/sre_constants.py $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/sre_parse.py     $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/stat.py          $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/string.py        $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/tempfile.py      $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/traceback.py     $INSTROOT/lib/python1.5/
++!cp $PYTHON_LIBDIR/types.py         $INSTROOT/lib/python1.5/
++&else
+ cmd.py.rpy               distrib
+-exceptions.py.rpy        distrib
++#exceptions.py.rpy        distrib
+ fnmatch.py.rpy           distrib
+ glob.py.rpy              distrib
+ linecache.py.rpy         distrib
+@@ -39,9 +66,7 @@
+ UserDict.py.rpy          distrib
+ UserList.py.rpy          distrib
+ :redist/python/lib-dynload/dummy.py distrib
+-
+-# sapdb library modules
+-optlib.py.rpy            distrib
++&endif
+ 
+ # binaries
+ &if $OS in [WIN32]

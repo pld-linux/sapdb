@@ -1,0 +1,166 @@
+--- buildtools/sys/src/base/ptoc/tools/makedepend/cppsetup.c
++++ buildtools/sys/src/base/ptoc/tools/makedepend/cppsetup.c
+@@ -91,8 +91,8 @@
+ pperror(tag, x0,x1,x2,x3,x4)
+ 	int	tag,x0,x1,x2,x3,x4;
+ {
+-	log("\"%s\", line %d: ", currentinc->i_file, currentfile->f_line);
+-	log(x0,x1,x2,x3,x4);
++	log_warn("\"%s\", line %d: ", currentinc->i_file, currentfile->f_line);
++	log_warn(x0,x1,x2,x3,x4);
+ }
+ 
+ 
+--- buildtools/sys/src/base/ptoc/tools/makedepend/def.h
++++ buildtools/sys/src/base/ptoc/tools/makedepend/def.h
+@@ -36,13 +36,13 @@
+ 
+ #ifdef DEBUG
+ extern int	debug;
+-#define	debug0	((debug&0x0001)==0) ? debug : log /* show ifn*(def)*,endif */
+-#define	debug1	((debug&0x0002)==0) ? debug : log /* trace defined/!defined */
+-#define	debug2	((debug&0x0004)==0) ? debug : log /* show #include */
+-#define	debug3	((debug&0x0008)==0) ? debug : log /* unused */
+-#define	debug4	((debug&0x0010)==0) ? debug : log /* unused */
+-#define	debug5	((debug&0x0020)==0) ? debug : log /* unused */
+-#define	debug6	((debug&0x0040)==0) ? debug : log /* unused */
++#define	debug0	((debug&0x0001)==0) ? debug : log_warn /* show ifn*(def)*,endif */
++#define	debug1	((debug&0x0002)==0) ? debug : log_warn /* trace defined/!defined */
++#define	debug2	((debug&0x0004)==0) ? debug : log_warn /* show #include */
++#define	debug3	((debug&0x0008)==0) ? debug : log_warn /* unused */
++#define	debug4	((debug&0x0010)==0) ? debug : log_warn /* unused */
++#define	debug5	((debug&0x0020)==0) ? debug : log_warn /* unused */
++#define	debug6	((debug&0x0040)==0) ? debug : log_warn /* unused */
+ #else
+ #define	debug0
+ #define	debug1
+--- buildtools/sys/src/base/ptoc/tools/makedepend/include.c
++++ buildtools/sys/src/base/ptoc/tools/makedepend/include.c
+@@ -39,7 +39,7 @@
+ 			found = TRUE;
+ 		}
+ 		else if (show_where_not)
+-			log("\tnot in %s\n", include);
++			log_warn("\tnot in %s\n", include);
+ 	}
+ 
+ 	/*
+@@ -63,7 +63,7 @@
+ 			found = TRUE;
+ 		}
+ 		else if (show_where_not)
+-			log("\tnot in %s\n", path);
++			log_warn("\tnot in %s\n", path);
+ 	}
+ 
+ 	/*
+@@ -80,7 +80,7 @@
+ 				break;
+ 			}
+ 			else if (show_where_not)
+-				log("\tnot in %s\n", path);
++				log_warn("\tnot in %s\n", path);
+ 		}
+ 
+ 	if (!found) {
+@@ -238,11 +238,11 @@
+ 	else {
+ 		for (i=0; i<ip->i_listlen; i++)
+ 			if (ip->i_list[ i ] == newfile) {
+-				log("%s includes %s more than once!\n",
++				log_warn("%s includes %s more than once!\n",
+ 					ip->i_file, newfile->i_file);
+-				log("Already have\n");
++				log_warn("Already have\n");
+ 				for (i=0; i<ip->i_listlen; i++)
+-					log("\t%s\n", ip->i_list[i]->i_file);
++					log_warn("\t%s\n", ip->i_list[i]->i_file);
+ 				return;
+ 			}
+ 		ip->i_list = (struct inclist **) realloc(ip->i_list,
+--- buildtools/sys/src/base/ptoc/tools/makedepend/main.c
++++ buildtools/sys/src/base/ptoc/tools/makedepend/main.c
+@@ -211,7 +211,7 @@
+ 		default:
+ 			if (endmarker) break;
+ 	/*		log_fatal("unknown opt = %s\n", argv[0]); */
+-			log("ignoring option %s\n", argv[0]);
++			log_warn("ignoring option %s\n", argv[0]);
+ 		}
+ 	}
+ 	*incp++ = INCLUDEDIR;
+@@ -264,7 +264,7 @@
+ 
+ 	content = (struct filepointer *)malloc(sizeof(struct filepointer));
+ 	if ((fd = open(file, O_RDONLY)) < 0) {
+-		log("cannot open \"%s\"\n", file);
++		log_warn("cannot open \"%s\"\n", file);
+ 		content->f_p = content->f_base = content->f_end = malloc(1);
+ 		*content->f_p = '\0';
+ 		return(content);
+@@ -296,12 +296,12 @@
+ char *x0 ;
+ void *x1, *x2, *x3, *x4, *x5, *x6, *x7, *x8, *x9 ;
+ {
+-	log(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);
++	log_warn(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);
+ 	exit (1);
+ }
+ 
+ /*VARARGS0*/
+-log(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9)
++log_warn(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9)
+ char * x0 ;	/* J.Bruehe 91-Aug-01  ANSI-C has prototype for "fprintf" */
+ void *x1, *x2, *x3, *x4, *x5, *x6, *x7, *x8, *x9 ;
+ {
+@@ -455,7 +455,7 @@
+ 		fputs(buf, fdout);
+ 	}
+ 	if (!found) {
+-		log("delimiting line \"%s\" not found...\nAppending...\n",
++		log_warn("delimiting line \"%s\" not found...\nAppending...\n",
+ 			linep);
+ 		puts(linep); /* same as fputs(fdout); but with newline */
+ 	}
+--- buildtools/sys/src/base/ptoc/tools/makedepend/parse.c
++++ buildtools/sys/src/base/ptoc/tools/makedepend/parse.c
+@@ -89,11 +89,11 @@
+ 			add_include(file, file_red, linep, TRUE);
+ 			break;
+ 		case -1:
+-			log("%s, line %d: unknown directive == \"%s\"\n",
++			log_warn("%s, line %d: unknown directive == \"%s\"\n",
+ 				file_red->i_file, filep->f_line, linep);
+ 			break;
+ 		case -2:
+-			log("%s, line %d: incomplete include == \"%s\"\n",
++			log_warn("%s, line %d: incomplete include == \"%s\"\n",
+ 				file_red->i_file, filep->f_line, linep);
+ 			break;
+ 		}
+@@ -130,7 +130,7 @@
+ 		case INCLUDEDOT:
+ 			break;
+ 		case -1:
+-			log("%s, line %d: unknown directive == \"%s\"\n",
++			log_warn("%s, line %d: unknown directive == \"%s\"\n",
+ 				file_red->i_file, filep->f_line, linep);
+ 			break;
+ 		}
+--- buildtools/sys/src/base/ptoc/tools/makedepend/pr.c
++++ buildtools/sys/src/base/ptoc/tools/makedepend/pr.c
+@@ -47,11 +47,11 @@
+ 	newfile = inc_path(file->i_file, include, dot);
+ 	if (newfile == NULL) {
+ 		if (file != file_red)
+-			log("%s (reading %s): ",
++			log_warn("%s (reading %s): ",
+ 				file_red->i_file, file->i_file);
+ 		else
+-			log("%s: ", file->i_file);
+-		log("cannot find include file \"%s\"\n", include);
++			log_warn("%s: ", file->i_file);
++		log_warn("cannot find include file \"%s\"\n", include);
+ 		show_where_not = TRUE;
+ 		newfile = inc_path(file->i_file, include, dot);
+ 		show_where_not = FALSE;

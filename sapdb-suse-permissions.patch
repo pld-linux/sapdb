@@ -1,0 +1,364 @@
+--- SAPDB_ORG/sys/src/cn/vcn35e.cpp
++++ SAPDB_ORG/sys/src/cn/vcn35e.cpp
+@@ -48,6 +48,8 @@
+ 
+ #include <stdlib.h>
+ #include <time.h>
++#include <sys/types.h>
++#include <sys/stat.h>
+ 
+ 
+ // -----------------------------------------------------------------------------
+@@ -328,6 +330,9 @@
+ 
+ int tcn35e_DBMBackupControllerLogWriter::OpenStream()
+ {
++    mode_t umask_old;
++
++    umask_old = umask(0113);
+     if(ClearProtFile)
+     {
+         //truncate dbm.ebp
+@@ -420,6 +425,7 @@
+             LogStream=0;
+     }
+ 
++    umask(umask_old);
+     return (0!=ProtStream);
+ }
+ 
+--- SAPDB_ORG/sys/src/cn/vcn40.cpp
++++ SAPDB_ORG/sys/src/cn/vcn40.cpp
+@@ -43,6 +43,8 @@
+ #include <stdio.h>
+ #include <ctype.h>
+ #include <errno.h>
++#include <sys/types.h>
++#include <sys/stat.h>
+ 
+ #include "vsp001.h"
+ #include "hsp77.h"
+@@ -3698,8 +3700,10 @@
+ #else
+       sp77sprintf(szCommand, PARAMETER_MAXLEN_CN90, "%s 1>%s 2>&1", szProgram, szTmpFile);
+ #endif
++      mode_t old_umask;
++      old_umask = umask(017);
+       nSysReturn = system(cn90Strip(szCommand));
+-
++      umask(old_umask);
+       if (nSysReturn == SYS_SYSTEM_ERR) {
+         nFuncReturn = ERR_SYSTEM_CN00;
+       } else if (nSysReturn != 0) {
+--- SAPDB_ORG/sys/src/en/ven09.c
++++ SAPDB_ORG/sys/src/en/ven09.c
+@@ -63,6 +63,7 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ #include <sys/stat.h>
++#include <grp.h>
+ #include <sys/types.h>
+ #include <unistd.h>
+ 
+@@ -179,14 +180,18 @@
+ 
+ static bool RegistryFile_Create(LockFile *this, const char *Path)
+ {
++  struct group * group;
++ 
+   if ( !this->m_IsOpen )
+   {
+     /* PTS 1105151 */
+     int  umask_old ;
+     umask_old = umask(0);  
+     this->m_Path = Path;
+-    this->Fd = open(Path, O_RDWR|O_CREAT, 0777);
++    this->Fd = open(Path, O_RDWR|O_CREAT, 0664);
+     this->m_IsOpen = ( this->Fd != -1 );
++    group = getgrnam("sapdb");
++    if (group != NULL) { chown(Path, -1, group->gr_gid); }
+     umask(umask_old);  
+   }
+   return this->m_IsOpen;
+--- SAPDB_ORG/sys/src/en/ven41.c
++++ SAPDB_ORG/sys/src/en/ven41.c
+@@ -653,7 +653,7 @@
+ 	DBG1 (( MF__,"create file '%s' \n", file ));
+ 
+ 	umask_old = umask ( 0 );
+-	rc = open ( file , O_CREAT , 0664 );
++	rc = open ( file , O_CREAT , 0600 );
+ 	if ( rc < 0 )
+     {
+ 		MSGD (( ERR_IPC_IDFILE_OPEN, file, sqlerrs() ));
+@@ -819,7 +819,7 @@
+      */
+     fd = open( file, 
+                O_WRONLY|O_CREAT|O_EXCL, 
+-               0660 );
++               0600 );
+ 
+     if ( fd < 0 )
+     {
+@@ -968,7 +968,7 @@
+ 
+     /* write it into file */
+     umask_old = umask(0);
+-    fd = open( path, O_RDWR|O_CREAT, 0777 );
++    fd = open( path, O_RDWR|O_CREAT, 0644 ); /* pid-file */
+     if ( fd < 0 )
+     {
+ 		MSGD (( ERR_IPC_IDFILE_OPEN, path, sqlerrs() ));
+@@ -1019,7 +1019,7 @@
+     strcat(path, dbname);
+ 
+     /* read it from file */
+-    fd = open( path, O_RDONLY, 0777 );
++    fd = open( path, O_RDONLY );
+     if ( fd < 0 )
+     {
+         if ( ENOENT == errno )
+@@ -1142,7 +1142,7 @@
+ 
+     /* write it into file */
+     umask_old = umask(0);
+-    fd = open( path, O_RDWR|O_CREAT, 0777 );
++    fd = open( path, O_RDWR|O_CREAT, 0644 );
+     if ( fd < 0 )
+     {
+ 		MSGD (( ERR_IPC_IDFILE_OPEN, path, sqlerrs() ));
+--- SAPDB_ORG/sys/src/en/ven541.c
++++ SAPDB_ORG/sys/src/en/ven541.c
+@@ -433,7 +433,11 @@
+ 
+   DBG3 ((MF__, "filecopy: <%s> ==> <%s> called\n", SrcName, DestName ));
+   if ( fCopyOk )
+-    { FILE *dest_stream = fopen ( DestName, "wb" ) ;
++    { FILE *dest_stream;
++      mode_t old_umask;
++      old_umask = umask(027);
++      dest_stream = fopen ( DestName, "wb" ) ;
++      umask(old_umask);
+       if ( ! ( fCopyOk = dest_stream != (FILE *)NULL ) )
+         en541_fcErr ( DestName, ERROR_OPEN_FILE_FOR_WRITE, RteError ) ;
+       else
+--- SAPDB_ORG/sys/src/en/ven58.c
++++ SAPDB_ORG/sys/src/en/ven58.c
+@@ -72,6 +72,7 @@
+ 	tsp00_Bool                       ok ;
+ 	char                            *buf;
+ 	tsp00_ErrText                    vds_errtext;
++	mode_t				old_umask;
+ 
+ 	DBG1 (( MF__,"called,    T%ld \n", this_ukt->curr_task->index ));
+ 	DBG1 (( MF__,"traceflag 0x%08lx \n", (long) traceflag ));
+@@ -96,7 +97,9 @@
+     }
+ 	FILL ( buf , 0 , XPARAM(ulDBPageSize) );
+ 
++    old_umask = umask(027);
+     fp = fopen ( (const char *)XPARAM(szTraceDevspace), "w" );
++    umask(old_umask);
+ 	if ( fp == NULL )
+ 	{
+ 		MSGALL (( IERR_TRACEFILE_OPEN_ERR, XPARAM(szTraceDevspace), sqlerrs() ))
+--- SAPDB_ORG/sys/src/en/ven60.c
++++ SAPDB_ORG/sys/src/en/ven60.c
+@@ -921,7 +921,7 @@
+ 			LOCALDBG (( "en60_OpenOp1Msg: Open opmsg1 '%s' \n", 
+ 						XparamParameters->szOpMsg1 ))
+ 			e60_opmsg1fd = open ( XparamParameters->szOpMsg1 , 
+-									  O_WRONLY|O_NDELAY , 0664 );
++									  O_WRONLY|O_NDELAY , 0600 );
+ 			if ( e60_opmsg1fd < 0 )
+ 			{
+ 				e60_opmsg1fd = 0 ;
+@@ -970,7 +970,7 @@
+ 			LOCALDBG (( "en60_OpenOp2Msg: Open opmsg2 '%s'\n", 
+ 						XparamParameters->szOpMsg2 ))
+ 			e60_opmsg2fd = open ( XparamParameters->szOpMsg2 , 
+-									  O_WRONLY|O_NDELAY , 0664 );
++									  O_WRONLY|O_NDELAY , 0600 );
+ 			if ( e60_opmsg2fd < 0 )
+ 			{
+ 				e60_opmsg2fd = 0 ;
+@@ -1013,7 +1013,7 @@
+     en60_FillFile ( &e60_opmsg3fd, e60_diag_size, KNLDIAG_FILE_NAME_EN60 ) ;
+     if ( e60_opmsg3fd < 0 ) /* Formatting failed... */
+     {
+-        e60_opmsg3fd = open(KNLDIAG_FILE_NAME_EN60, O_WRONLY|O_NDELAY, 0664);
++        e60_opmsg3fd = open(KNLDIAG_FILE_NAME_EN60, O_WRONLY|O_NDELAY, 0600);
+         if ( e60_opmsg3fd < 0 )
+         {
+             return (2); /* very fatal... cannot reopen knldiag */
+@@ -1244,7 +1244,7 @@
+ 
+     LOCALDBG (( MF__": called \n" ))
+    
+-	e60_operrfd = open ( e79_errmsg, O_WRONLY | O_APPEND | O_CREAT | O_NDELAY, 0664);
++	e60_operrfd = open ( e79_errmsg, O_WRONLY | O_APPEND | O_CREAT | O_NDELAY, 0600);
+ 	if ( e60_operrfd < 0 )
+ 	{
+ 	  e60_operrfd = e60_opmsg3fd;
+@@ -1340,7 +1340,7 @@
+ 		en60_FindUtilBeginPos( XParam->szUtilityProtFile, &e60_ut_pos  );
+ 
+ 		e60_op_ut_fd = open ( XParam->szUtilityProtFile , 
+-                      O_WRONLY | O_CREAT | O_NDELAY , 0664);
++                      O_WRONLY | O_CREAT | O_NDELAY , 0600);
+ 		if ( e60_op_ut_fd < 0 )
+ 		{
+ 			e60_op_ut_fd = 0 ;
+@@ -1463,7 +1463,7 @@
+         }
+     }
+ 
+-	e60_opmsg3fd = open ( KNLDIAG_FILE_NAME_EN60, O_WRONLY|O_CREAT|O_NDELAY , 0664 );
++	e60_opmsg3fd = open ( KNLDIAG_FILE_NAME_EN60, O_WRONLY|O_CREAT|O_NDELAY , 0600 );
+ 	if ( e60_opmsg3fd < 0 )
+ 	{
+ 		e60_opmsg3fd = 1 ;
+@@ -1647,7 +1647,7 @@
+ 	    else
+ 		{
+ 			LOCALDBG (( "en60_ReopenOpmsg: Open opmsg%d '%s'\n", which, szOpMsg ))
+-    		*opMsgFd = open ( szOpMsg , O_WRONLY|O_APPEND|O_NDELAY , 0664 );
++    		*opMsgFd = open ( szOpMsg , O_WRONLY|O_APPEND|O_NDELAY , 0600 );
+     		if ( *opMsgFd < 0 )
+ 	    	{
+     			*opMsgFd = 0 ;
+@@ -1684,7 +1684,7 @@
+          * a good idea to find the last position... Instead appending
+          * at end of file is the only reasonable solution.
+          */
+-    	*opMsgFd = open ( szOpMsg , O_WRONLY|O_NDELAY , 0664 );
++    	*opMsgFd = open ( szOpMsg , O_WRONLY|O_NDELAY , 0600);
+     	if ( *opMsgFd < 0 )
+ 	    {
+     		*opMsgFd = 1 ;
+@@ -1770,7 +1770,7 @@
+ 	{
+         en60_EventFileSize = MaxSize * XPARAM(ulDBPageSize);
+         en60_EventFileFd = open ( Filename, 
+-							 O_WRONLY | O_CREAT | O_NDELAY , 0664);
++							 O_WRONLY | O_CREAT | O_NDELAY , 0600);
+ 		if ( en60_EventFileFd < 0 )
+ 		{
+ 		  MSGD (( ERR_OPEN, Filename, errno ));
+--- SAPDB_ORG/sys/src/en/ven66.c
++++ SAPDB_ORG/sys/src/en/ven66.c
+@@ -80,7 +80,7 @@
+   #undef  MF__
+   #define MF__ MOD__"sql66kc_open"
+ 
+-    *hostfileno  = open ( filename , O_WRONLY | O_CREAT | O_TRUNC , 0660 );
++    *hostfileno  = open ( filename , O_WRONLY | O_CREAT | O_TRUNC , 0600 );
+     DBG3 ((MF__, "hostfileno = %d " , *hostfileno ));
+     if ( *hostfileno < 0 )
+     {
+@@ -140,7 +140,7 @@
+ tsp_vf_return		*error ,
+ tsp_errtext             errtext )
+ {
+-    *hostfileno  = open ( filename , O_WRONLY | O_CREAT | O_APPEND , 0660 );
++    *hostfileno  = open ( filename , O_WRONLY | O_CREAT | O_APPEND , 0600 );
+     if ( *hostfileno < 0 )
+     {
+ 		*error = VF_NOTOK ;
+--- SAPDB_ORG/sys/src/en/ven78.cpp
++++ SAPDB_ORG/sys/src/en/ven78.cpp
+@@ -43,6 +43,9 @@
+ #include <stdio.h>
+ #if !defined(WIN32)
+ #include <unistd.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <grp.h>
+ #if defined(AIX)
+ extern "C" int lockf(int, int, off_t);
+ #endif
+@@ -726,12 +729,18 @@
+ {
+ 	tsp00_Pathc path;
+ 	FILE *f = NULL;
++	mode_t old_umask;
++	struct group * group;
+ 
+     path.Init();
+ 	registry_file(path);
+ 	if ( path[0] != 0 )
+ 	{
++	        old_umask = umask(0113);
+ 		f = fopen( (char *)path, "r+");
++		umask(old_umask);
++		group = getgrnam("sapdb");
++		if (group != NULL) { chown(path, -1, group->gr_gid); }
+         if ( !f )
+         {
+             MSGD(( ERR_REGISTRY_OPEN_FAILED, (char *)path ));
+--- SAPDB_ORG/sys/src/eo/veo06.c
++++ SAPDB_ORG/sys/src/eo/veo06.c
+@@ -37,6 +37,9 @@
+ 
+ #define MOD__ "veo06.c: "
+ 
++#include <grp.h>
++#include <string.h>
++
+ #include  "gsp00.h" 
+ #include  "heo00.h"     
+ #include  "geo007_2.h"     
+@@ -4597,6 +4600,7 @@
+ #undef MF__
+ #define MF__ MOD__"eo06_fileOpenUnix"
+     int openFlags = 0;
++    struct group *group;
+ 
+     if (eo06_tryStdUnix (fname, fileMode, file, ferr)) {
+         return TRUE;
+@@ -4628,14 +4632,25 @@
+ #endif
+  
+     /* open file */
+-    file->osHandle = open (fname, openFlags, 0666);
++    /* affected files:
++     * indep_data/config/$SID.cfg
++     * indep_data/config/$SID/dbm.cfg
++     * indep_data/config/$SID.pah
++     * indep_data/wrk/dbmsrv.prt
++     * indep_data/wrk/$SID/dbm.cfg
++    */
++    file->osHandle = open (fname, openFlags, 0660);
+     if (file->osHandle == invalidHandleC) {
+         eo06_osError (ferr);
+     }
+     else {
++      struct stat statInfo;
++
++      /* chown to group sapdb (if exists) */
++      group = getgrnam("sapdb");
++      if (group != NULL) { chown(fname, -1, group->gr_gid); }
+       /* PTS 1106917 jrg 16.6.2000 */
+       /* lock only regular files */
+-      struct stat statInfo;
+ 
+       if ( fstat (file->osHandle, &statInfo) == 0
+ #if defined(OSF1)
+--- SAPDB_ORG/sys/src/eo/veo28.cpp
++++ SAPDB_ORG/sys/src/eo/veo28.cpp
+@@ -1684,13 +1684,13 @@
+      DoCreate = true;
+    }
+ 
+-   m_FileDesc = open ( m_FileName, OpenMode, 0660 );
++   m_FileDesc = open ( m_FileName, OpenMode, 0600 );
+ 
+    if ( m_FileDesc == -1 )
+    {
+      if ( errno == ENOENT )
+      {
+-       m_FileDesc = open ( m_FileName, OpenMode | ( DoCreate ? O_CREAT : 0 ), 0660 );
++       m_FileDesc = open ( m_FileName, OpenMode | ( DoCreate ? O_CREAT : 0 ), 0600 );
+ 
+        if ( m_FileDesc != -1 )
+          m_ContainerIsEmpty = true;

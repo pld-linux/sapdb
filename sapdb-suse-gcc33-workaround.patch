@@ -1,0 +1,15 @@
+--- SAPDB_ORG/sys/src/bd/gbd910.h
++++ SAPDB_ORG/sys/src/bd/gbd910.h
+@@ -420,8 +420,10 @@
+         {
+             /* no more pages in this chain, goto next chain of this file */
+             const tgg00_ObjFileNo &CurrFileNo  = m_ptrCurrent->curr_tree_id.fileObjFileNo_gg00();
+-            const tsp00_PageNo    &CurrChainNo = NptrsPrevPage.np_ptr()->nd_chain_no();
+-            cbd900_ObjFileInfo    &ObjFileInfo = bd90ObjFileDir[CurrFileNo];
++            const tsp00_Int4 tmp_ChainNo = NptrsPrevPage.np_ptr()->nd_chain_no();
++	    const tsp00_PageNo    &CurrChainNo = tmp_ChainNo;
++
++	    cbd900_ObjFileInfo    &ObjFileInfo = bd90ObjFileDir[CurrFileNo];
+             
+             if (ObjFileInfo.ofiMaxChain_bd900 - 1 <= CurrChainNo)
+                 return;

@@ -1,0 +1,56 @@
+--- sys/src/base/inc/istvarg.h
++++ sys/src/base/inc/istvarg.h
+@@ -23,7 +23,7 @@
+ #ifndef	_VARARG_HEADERS
+ #define	_VARARG_HEADERS
+ 
+-#include	<varargs.h>
++#include	<stdarg.h>
+ 
+ #endif /*_VARARG_HEADERS*/
+ 
+--- sys/src/base/mf/mf.h
++++ sys/src/base/mf/mf.h
+@@ -29,6 +29,7 @@
+ #include	<stdio.h>
+ #include	<ctype.h>
+ #include	<string.h>
++#include	<stdlib.h>
+ #include        <memory.h>
+ #include	"debug.h"
+ 
+--- sys/src/base/mf/mfconcom.c
++++ sys/src/base/mf/mfconcom.c
+@@ -45,8 +45,7 @@
+ #define         ERRTXTSIZ               60
+ #define         MAXOPTS                 64
+ 
+-global	void			err ();
+-extern	char			*getenv ();
++global	void			err ( char * txt , ... );
+ 
+ typedef char                    token_type [ TOKENSIZE + 2 ];
+ typedef char                    name_type  [ NAMESIZE + 2 ];
+@@ -508,19 +507,14 @@
+ 
+ /*==========================================================================*/
+ 
+-#include	"varargs.h"
++#include	<stdarg.h>
+ 
+ /*VARARGS1*/
+-global	void	err ( txt , va_alist )
+-
+-char			* txt ;
+-va_dcl
+-
++global	void	err ( char * txt , ... )
+ {
+ 	va_list			args ;
+ 
+-
+-	va_start ( args );
++	va_start ( args, txt );
+ 	vfprintf ( dbgdbgfp , txt , args );
+ 	va_end ( args );
+ }

@@ -1,0 +1,291 @@
+--- SAPDB_ORG/sys/src/SAPDB/RunTime/System/RTESys_Spinlock.c
++++ SAPDB_ORG/sys/src/SAPDB/RunTime/System/RTESys_Spinlock.c
+@@ -236,6 +236,68 @@
+ /*LINUX && IA64*/  }
+ #endif /*LINUX && IA64*/
+ 
++#if defined(LINUX) && defined(S390X)
++/*LINUX && S390X*/  void RTESys_InitLock( RTE_Lock * lock )
++/*LINUX && S390X*/  {
++/*LINUX && S390X*/     int *ptr;
++/*LINUX && S390X*/
++/*LINUX && S390X*/     ptr = &(*lock)[0];
++/*LINUX && S390X*/     *ptr = 0;
++/*LINUX && S390X*/  }
++/*LINUX && S390X*/
++/*LINUX && S390X*/  bool RTESys_TestAndLock( RTE_Lock * lock )
++/*LINUX && S390X*/  {
++/*LINUX && S390X*/     int old;
++/*LINUX && S390X*/     
++/*LINUX && S390X*/     __asm__ __volatile__( "0:l    0,%1\n"
++/*LINUX && S390X*/      		     "  cs   0,%2,%1\n"
++/*LINUX && S390X*/                           "  brc  4,0b\n"
++/*LINUX && S390X*/                           "  lgr  %0, 0\n"
++/*LINUX && S390X*/                           : "=r" (old), "+m" (*lock)
++/*LINUX && S390X*/                           : "r" (1)
++/*LINUX && S390X*/                           : "cc", "0");
++/*LINUX && S390X*/     return (old != 0);
++/*LINUX && S390X*/  }
++/*LINUX && S390X*/
++/*LINUX && S390X*/  void RTESys_Unlock( RTE_Lock * lock )
++/*LINUX && S390X*/  {
++/*LINUX && S390X*/     int *ptr;
++/*LINUX && S390X*/
++/*LINUX && S390X*/     ptr = &(*lock)[0];
++/*LINUX && S390X*/     *ptr = 0;
++/*LINUX && S390X*/  }
++#endif /*LINUX && S390X*/
++       
++#if defined(LINUX) && defined(X86_64)
++/*LINUX && X86_64*/  void RTESys_InitLock( RTE_Lock * lock )
++/*LINUX && X86_64*/  {
++/*LINUX && X86_64*/      int *ptr;
++/*LINUX && X86_64*/
++/*LINUX && X86_64*/      ptr = &(*lock)[0];
++/*LINUX && X86_64*/      *ptr = 0;
++/*LINUX && X86_64*/  }
++/*LINUX && X86_64*/
++/*LINUX && X86_64*/  bool RTESys_TestAndLock( RTE_Lock * lock )
++/*LINUX && X86_64*/  {
++/*LINUX && X86_64*/      int old;
++/*LINUX && X86_64*/
++/*LINUX && X86_64*/      asm volatile ("xchgl %0,%1"
++/*LINUX && X86_64*/                    : "=r" (old), "=m" (*lock)
++/*LINUX && X86_64*/                    : "0" (0));
++/*LINUX && X86_64*/
++/*LINUX && X86_64*/      return (old != 0);
++/*LINUX && X86_64*/  }
++/*LINUX && X86_64*/
++/*LINUX && X86_64*/  void RTESys_Unlock( RTE_Lock * lock )
++/*LINUX && X86_64*/  {
++/*LINUX && X86_64*/      int *ptr;
++/*LINUX && X86_64*/
++/*LINUX && X86_64*/      ptr = &(*lock)[0];
++/*LINUX && X86_64*/      *ptr = 0;
++/*LINUX && X86_64*/  }
++#endif /*LINUX && X86_64*/       
++       
++
+ #if defined(NMP)
+ /*NMP*/  void RTESys_InitLock( RTE_Lock * lock )
+ /*NMP*/  {
+--- SAPDB_ORG/sys/src/en/ven38NMP.cpp
++++ SAPDB_ORG/sys/src/en/ven38NMP.cpp
+@@ -27,7 +27,7 @@
+ 
+ */
+ 
+-#if defined(NMP)
++#if defined(NMP) || defined(S390X) || defined(X86_64)
+ 
+ #if defined (BIT64) 
+ #  define MIN_PARM_NUM  8
+--- SAPDB_ORG/sys/src/en/ven76.c
++++ SAPDB_ORG/sys/src/en/ven76.c
+@@ -63,7 +63,7 @@
+  * ===========================================================================
+  */
+ 
+-#if defined(I386) || defined(PA11) || defined(PA20W) || defined(MI_ULT) || defined(_IBMR2) || defined(IA64)
++#if defined(I386) || defined(PA11) || defined(PA20W) || defined(MI_ULT) || defined(_IBMR2) || defined(IA64) || defined (S390) || defined (S390X) || defined (X86_64)
+ 
+ #undef MF__
+ #define MF__ MOD__"e76_interlock"
+@@ -174,6 +174,40 @@
+ 
+ #endif	/*NO_AS*/
+ 
++#if defined LINUX && defined S390X
++#undef MF__
++#define MF__ MOD__"e76_interlock"
++
++externC int e76_interlock( volatile ALONE_UKP_STRUCT addr ) {
++       int old_val;
++
++        __asm__ __volatile__( "0:l    0,%1\n"
++                              "  cs   0,%2,%1\n"
++                              "  brc  4,0b\n"
++                              "  lgr  %0, 0\n"
++                              : "=r" (old_val), "+m" (*addr)
++                              : "r" (1)
++                              : "cc", "0");
++       return ( old_val != 0 );
++}
++#endif
++
++#if defined LINUX && defined X86_64
++#undef MF__
++#define MF__ MOD__"e76_interlock"
++
++externC int e76_interlock( volatile ALONE_UKP_STRUCT addr ) {
++       int old_val;
++
++       asm volatile ("xchgl %0,%1"
++                       : "=r" (old_val), "=m" (*addr)
++                       : "0" (0));
++
++        return ( old_val != 0 );
++}
++#endif
++	
++
+ /*
+  * ===========================================================================
+  */
+@@ -309,7 +343,7 @@
+ #define MF__ MOD__"e76_alarm0"
+ 
+ #ifndef OUTSIDE_KERNEL
+-#if defined(I386) || defined(ALPHA) || (defined(LINUX) && defined(IA64))
++#if defined(I386) || defined(ALPHA) || (defined(LINUX) && ( defined(IA64) || defined (S390) || defined(S390X) || defined(X86_64) ) )
+ externC void e76_alarm0 ()
+ {
+   (void) sleep (0) ;
+--- SAPDB_ORG/sys/src/in/hin97.h
++++ SAPDB_ORG/sys/src/in/hin97.h
+@@ -55,7 +55,7 @@
+     virtual void procReturns (const char * fmt, ...);
+     virtual void procExit (const char * name);
+     virtual void writeln (const char * name, int len = -1);
+-    virtual void printf (const char * format, ...);
++    virtual void xprintf (const char * format, ...);
+     virtual void vprintf (const char * format, va_list ap);
+     virtual void setIndentation (int newIndent);
+     virtual void hex (const char * comment, const void * buf, int len);
+--- SAPDB_ORG/sys/src/in/vin201.cpp
++++ SAPDB_ORG/sys/src/in/vin201.cpp
+@@ -450,7 +450,7 @@
+   /*
+   * dump header
+   */
+-  trace->printf ("        %s Part %d Arguments (%d of %d bytes) (Segment at %d)\n",
++  trace->xprintf ("        %s Part %d Arguments (%d of %d bytes) (Segment at %d)\n",
+     dumpInfo->name, header->sp1p_arg_count, header->sp1p_buf_len,
+     header->sp1p_buf_size, header->sp1p_segm_offset);
+     /*
+--- SAPDB_ORG/sys/src/in/vin202.cpp
++++ SAPDB_ORG/sys/src/in/vin202.cpp
+@@ -180,17 +180,17 @@
+     tsp1_segment_header * header = &this->rawSegment->sp1s_segm_header ();
+     char tmpBuf [tmpBufSize_cin97] [3];
+ 
+-    trace->printf ("   %s Segment %d at %d (%d of %d bytes)\n",
++    trace->xprintf ("   %s Segment %d at %d (%d of %d bytes)\n",
+         in97EnumDump (&segmKindDesc, header->sp1s_segm_kind (), tmpBuf [0]),
+         header->sp1s_own_index (), header->sp1s_segm_offset (),
+         header->sp1s_segm_len (), this->Size ());
+     switch (sp1sk_cmd) {
+         case sp1sk_cmd:
+-            trace->printf ("        messtype: %s  sqlmode: %s  producer: %s\n",
++            trace->xprintf ("        messtype: %s  sqlmode: %s  producer: %s\n",
+                 in97EnumDump (&messtypeDesc, header->sp1c_mess_type (), tmpBuf [0]),
+                 in97EnumDump (&sqlModeDesc, header->sp1c_sqlmode (), tmpBuf [1]),
+                 in97EnumDump (&producerDesc, header->sp1c_producer (), tmpBuf [2]));
+-            trace->printf ("        Options: %s%s%s%s%s%s\n",
++            trace->xprintf ("        Options: %s%s%s%s%s%s\n",
+                 header->sp1c_commit_immediately () ? "commit " : "",
+                 header->sp1c_ignore_costwarning () ? "ignore costwarning " : "",
+                 header->sp1c_prepare () ? "prepare " : "",
+@@ -199,15 +199,15 @@
+                 header->sp1c_parsing_again () ? "parsing again " : "");
+             break;
+         case sp1sk_return:
+-            trace->printf ("        RC: %d  %.5s  (Pos %d) Function %d\n",
+-                header->sp1r_returncode (), (char *)(header->sp1r_sqlstate ()),
+-                header->sp1r_errorpos (), header->sp1r_function_code ());
++            trace->xprintf ("        RC: %d  %.5s  (Pos %d) Function %d\n",
++                (int)header->sp1r_returncode (), (char *)(header->sp1r_sqlstate ()),
++                (int)header->sp1r_errorpos (), header->sp1r_function_code ());
+             break;
+         default:
+             trace->writeln ("unknown segement kind");
+             break;
+     }
+-    trace->printf ("        %d parts:\n", header->sp1s_no_of_parts ());
++    trace->xprintf ("        %d parts:\n", header->sp1s_no_of_parts ());
+ 
+     cin202_ReplySegment tmpSegment (this->rawSegment);
+     cin201_Part part = tmpSegment.GetFirstPart ();
+--- SAPDB_ORG/sys/src/in/vin203.cpp
++++ SAPDB_ORG/sys/src/in/vin203.cpp
+@@ -87,13 +87,13 @@
+     if (!this->IsValid ()) {
+         trace->writeln ("Invalid Packet");
+     }
+-    trace->printf ("<Packet> %s  %s swap  %.3s-%.5s (transfer len %d)\n",
++    trace->xprintf ("<Packet> %s  %s swap  %.3s-%.5s (transfer len %d)\n",
+         in97EnumDump (&messCodeDesc, header->sp1h_mess_code, tmpBuf [0]),
+         in97EnumDump (&swapTypeDesc, header->sp1h_mess_swap, tmpBuf [1]),
+         header->sp1h_application.asCharp (),
+         header->sp1h_appl_version.asCharp (),
+         this->Length ());
+-    trace->printf ("    %3d Segment(s) (%d of %d bytes)\n",
++    trace->xprintf ("    %3d Segment(s) (%d of %d bytes)\n",
+         header->sp1h_no_of_segm, header->sp1h_varpart_len,
+         header->sp1h_varpart_size);
+ 
+--- SAPDB_ORG/sys/src/in/vin97.cpp
++++ SAPDB_ORG/sys/src/in/vin97.cpp
+@@ -102,7 +102,7 @@
+ 
+ void cin97_TraceStream::procEntry (const char * name)
+ {
+-    this->printf ("%*s-->%s\n", this->nesting * this->indent, "", name);
++    this->xprintf ("%*s-->%s\n", this->nesting * this->indent, "", name);
+     ++this->nesting;
+ }
+ 
+@@ -138,7 +138,7 @@
+ void cin97_TraceStream::procExit (const char * name)
+ {
+     --this->nesting;
+-    this->printf ("%*s<--%s\n", this->nesting * this->indent, "", name);
++    this->xprintf ("%*s<--%s\n", this->nesting * this->indent, "", name);
+ }
+ 
+ /*----------------------------------------*/
+@@ -150,7 +150,7 @@
+ 
+ /*----------------------------------------*/
+ 
+-void cin97_TraceStream::printf (const char * format, ...)
++void cin97_TraceStream::xprintf (const char * format, ...)
+ {
+     va_list         ap;
+ 
+--- SAPDB_ORG/sys/src/ls/hls98msg.h
++++ SAPDB_ORG/sys/src/ls/hls98msg.h
+@@ -595,7 +595,7 @@
+     int ls98_Write();
+     void ls98_Init();
+         
+-    void ls98_FormatMsg(const ErrorNumbers lMsgNr, bool  bMsgToFileOnly, const va_list arglist);
++    void ls98_FormatMsg(const ErrorNumbers lMsgNr, bool  bMsgToFileOnly, va_list arglist);
+ };
+ 
+ 
+--- SAPDB_ORG/sys/src/sp/vsp77.c
++++ SAPDB_ORG/sys/src/sp/vsp77.c
+@@ -1867,7 +1867,7 @@
+     void *buf,
+     t_len buflen,
+     const tsp00_Char *format,
+-    va_list args)
++    va_list xargs)
+ {
+     /* ROUTINE_DBG_MSP00 ("sp77_vsprintfCommon"); */
+     char               *ptr = (char *)buf;
+@@ -1877,6 +1877,13 @@
+     t_len               charsWritten;
+     cbool               error = FALSE;
+     t_len               literalLen;
++    va_list		args;
++
++#ifdef __va_copy
++    __va_copy(args, xargs);
++#else
++    args = xargs;
++#endif
+ 
+     if ( !encoding || encoding->encodingClass != &sp77EncodingClass )
+     {

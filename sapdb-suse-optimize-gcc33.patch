@@ -1,0 +1,11 @@
+--- sys/src/tt/toolvars-tml.pl.tt
++++ sys/src/tt/toolvars-tml.pl.tt
+@@ -1030,7 +1030,7 @@
+ 	}
+ &elif $OSSPEC = LINUX
+ 	if ($MACH eq "I386") {
+-		@OPTIMIZE = ("-O3", "-march=pentium", "-mcpu=pentiumpro");
++		@OPTIMIZE = ("-O1", "-march=pentium", "-mcpu=pentiumpro");
+ 	} elsif ($MACH eq "IA64") {
+ 		@OPTIMIZE = ("-O2");
+ 	} else {

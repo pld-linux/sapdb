@@ -1,0 +1,29 @@
+--- sys/desc/alltools.mac
++++ sys/desc/alltools.mac
+@@ -119,6 +119,7 @@
+ # Tool for gathering machine information
+ # i.e. number of processors...
+ #
++::tt/cpan/SAPDB/Install/xs.mac
+ machineInfo.lnk
+ mf_opts.pl.tt
+ mf00ccc.pl.tt
+@@ -334,6 +335,7 @@
+ whose.mac
+ &endif
+ 
++instperltools.pl.tt
+ igme.mac
+ 
+ &if $OS in [ WIN32 ]
+--- sys/desc/igme.mac
++++ sys/desc/igme.mac
+@@ -48,5 +48,5 @@
+ igme.pm.tt
+ 
+ &if $OS = UNIX
+-!$TOOLSHELL $TOOL/bin/instperltools
+-&endif
+\ No newline at end of file
++!$TOOLSHELL $TOOL/bin/instperltools.pl
++&endif

@@ -1,0 +1,8 @@
+--- SAPDB_ORG/sys/src/in/instperl.pl
++++ SAPDB_ORG/sys/src/in/instperl.pl
+@@ -1,4 +1,4 @@
+-#!/usr/lib/perl
++#!/usr/bin/perl
+ # installs SAP DBTech perl modules
+ #
+ #    ========== licence begin LGPL
