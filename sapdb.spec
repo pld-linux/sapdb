@@ -1,11 +1,14 @@
 
 # TODO:
 #	- Correct web server pages to work fine with konqueror.
-#	- Creating databases via web interfaces do not work fine yet.
 #	- All scripts which use dbmcli look for an exit result grepping
 #         dbmcli output and searching "OK" phrase. It's wrong while error
 #	  messages can contains "OK" phrase too.
 #	- A sweet dream: dynamic linking...
+#	- update /etc/services with following values:
+#		sql6		7210/tcp
+#		sapdbni72	7269/tcp
+#		sql30		7200/tcp
 
 %define		mainver		7.4
 %define		subver		3.17
@@ -14,7 +17,7 @@
 Summary:	SAP DB
 Name:		sapdb
 Version:	%{mainver}.%{subver}
-Release:	0.5
+Release:	0.6
 License:	GPL
 Group:		Applications/Databases
 Source0:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-source-%{mainver}.0%{subver}.tgz
@@ -28,12 +31,9 @@ Source4:	%{name}-web.init
 Source5:	%{name}-suse-demo.tar.bz2
 # Source5-md5:	7087a65261c8e8b35be8bca3531cbb94
 Source6:	%{name}-sysconfig
-Source7:	%{name}-suse-README
 Source8:	%{name}-suse-pam
 Source10:	migration73_74eng.pdf
 # Source10-md5:	02c2ee8729e456f359e6f098c4a781df
-Source11:	%{name}-suse-rpm.lst
-# Source11-md5:	197a2c62b61ac148d3642d70951a45a1
 Source12:	%{name}-suse-firststeps.tgz
 # Source12-md5:	71c509c36a830f5c56e0fa423fc6a33a
 Patch0:		%{name}-suse-desc.patch
@@ -56,22 +56,31 @@ Patch18:	%{name}-suse-optimize-gcc33.patch
 Patch19:	%{name}-bash.patch
 Patch20:	%{name}-desc.patch
 Patch21:	%{name}-webpages.patch
+Patch22:	%{name}-nostatic-ncurses.patch
+Patch23:	%{name}-loadercperl.patch
+Patch24:	%{name}-python-dep.patch
 BuildRequires:	bash
-BuildRequires:	ncurses-static
 BuildRequires:	bison
+BuildRequires:	glibc-devel
+BuildRequires:	libsigc++-devel >= 1.2.4
+BuildRequires:	ncurses-devel
+BuildRequires:	pam-devel
 BuildRequires:	perl
 BuildRequires:	python >= 2.2
 BuildRequires:	python-libs >= 2.2
 BuildRequires:	python-devel >= 2.2
-BuildRequires:	libsigc++-static >= 1.2.4
-BuildRequires:	glibc-devel
-BuildRequires:	pam-devel
+BuildRequires:	python-devel-src >= 2.2
+BuildRequires:	vim-static
 URL:		http://www.sapdb.org/
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		sapdbdir	%{_libdir}/%{name}
 %define		sapdbvar	/var/lib/%{name}
 %define		sqlspool	/var/spool/sql
+%define		depend		%{sapdbdir}/depend
+%define		indep		%{sapdbdir}/indep_prog
+%define		indepdat	%{sapdbvar}/indep_data
+%define		webtools	%{sapdbdir}/web
 
 %define		_noautocompressdoc *.doc
 
@@ -117,9 +126,10 @@ SAP DB Database Server
 
 
 %package web
-Summary:      SAP DB Web Tools
-Group:        Applications/Databases
-Requires:     sapdb-callif >= %{version}
+Summary:	SAP DB Web Tools
+Group:		Applications/Databases
+Requires:	%{name}-ind = %{version}
+Requires:	%{name}-callif >= %{version}
 
 %description web
 SAP DB Web Tools
@@ -135,8 +145,9 @@ SAP DB Precompiler
 
 
 %package callif
-Summary:      SAP DB ODBC and JDBC Interfaces
-Group:        Applications/Databases
+Summary:	SAP DB ODBC and JDBC Interfaces
+Group:		Applications/Databases
+Requires:	%{name}-ind = %{version}
 
 %description callif
 - ODBC driver
@@ -193,6 +204,8 @@ cd $RPM_BUILD_DIR/%{name}-%{version}/%{intversion}
 %patch17
 %patch20 -p1
 %patch21 -p1
+%patch23 -p1
+%patch24 -p1
 
 cd $RPM_BUILD_DIR/%{name}-%{version}/buildtools
 %patch10 -p1
@@ -202,6 +215,7 @@ cd $RPM_BUILD_DIR/%{name}-%{version}/buildtools
 %patch14
 %patch18
 %patch19 -p1
+%patch22 -p1
 
 %build
 # generate sapdb build tools
@@ -209,7 +223,6 @@ chmod -R u+w $RPM_BUILD_DIR/%{name}-%{version}/buildtools
 cd $RPM_BUILD_DIR/%{name}-%{version}/buildtools
 NOREG=1
 export NOREG
-#export USE_AUTOCONF=yes
 %configure
 %{__make}
 
@@ -225,15 +238,11 @@ echo "PYTHON_LIBDIR=/usr/lib/python2.2 export PYTHON_LIBDIR" >> $IPROF
 echo "PYTHON_INCLUDE=/usr/include/python2.2 export PYTHON_INCLUDE" >> $IPROF
 echo "NOQUIET=1 export NOQUIET" >> $IPROF
 echo "NOREG=1 export NOREG" >> $IPROF
+echo "LD_LIBRARY_PATH=\$INSTROOT/lib:$LD_LIBRARY_PATH export LD_LIBRARY_PATH" >> $IPROF
 
 . $RPM_BUILD_DIR/%{name}-%{version}/%{intversion}/SAPDB_ORG/.iprofile
 
-imf -x all ||:
-# workaround for wrong build order - check for better solution
-imf -x all ||:
-imf -x all 
-
-#ims -eU kernel
+imf -x all
 %ifarch %{ix86} ia64 x86_64
 ims -x slowknl
 %endif
@@ -241,31 +250,108 @@ ims -x slowknl
 %install
 rm -rf $RPM_BUILD_ROOT
 
-#
-# Prepare environment for packaging
-#
 ORG=$RPM_BUILD_DIR/%{name}-%{version}/%{intversion}/SAPDB_ORG
 
 mkdir -p \
     $RPM_BUILD_ROOT/etc/sysconfig \
-    $RPM_BUILD_ROOT%{sapdbdir}/depend/wrk \
-    $RPM_BUILD_ROOT%{sapdbdir}/testdb \
-    $RPM_BUILD_ROOT%{sqlspool}/ini \
-    $RPM_BUILD_ROOT%{sqlspool}/dbspeed \
-    $RPM_BUILD_ROOT%{sqlspool}/diag \
-    $RPM_BUILD_ROOT%{sqlspool}/fifo \
-    $RPM_BUILD_ROOT%{sqlspool}/ipc \
-    $RPM_BUILD_ROOT%{sqlspool}/pid \
-    $RPM_BUILD_ROOT%{sqlspool}/ppid \
-    $RPM_BUILD_ROOT%{sapdbvar}/indep_data/config \
-    $RPM_BUILD_ROOT%{sapdbvar}/indep_data/wrk \
-    $RPM_BUILD_ROOT%{_libdir}/python2.2
+    $RPM_BUILD_ROOT%{sapdbdir}/{testdb,bin,pgm,sap} \
+    $RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb/pythondef \
+    $RPM_BUILD_ROOT%{sapdbdir}/runtime/jar \
+    $RPM_BUILD_ROOT%{sapdbdir}/runtime/7403/lib \
+    $RPM_BUILD_ROOT%{sqlspool}/{dbspeed,diag,fifo,ipc,pid,ppid} \
+    $RPM_BUILD_ROOT%{sapdbvar}/{config,wrk} \
+    $RPM_BUILD_ROOT%{_libdir}/python2.2 \
+    $RPM_BUILD_ROOT%{_includedir}/sapdb
 
+#
+# install SAPDB files
+#
+cp -a $ORG/usr/Documents $RPM_BUILD_ROOT%{sapdbdir}
+
+# bin directory
+cp $ORG/usr/bin/{dbanalyzer,dbmcli-HelpInst,dbmcli,irtrace,loadercli,backint} \
+    $ORG/usr/bin/{pipe2file,cpc,repmcli,dbmgetf,xuserUnicode,x_ping,sysmon} \
+    $ORG/usr/bin/{irconf,cpclnk,buildinfo,sdbinfo,sqlver,sqlwhat,x_look} \
+    $ORG/usr/bin/{x_install,op2np,odbclnk,x_genwin,ps_all} \
+    $RPM_BUILD_ROOT%{sapdbdir}/bin
+
+for i in x_analys x_clear x_cons x_diagnose x_maketi x_python x_server x_show \
+    x_start x_stop x_wiz x_wizard x_wizstop x_wiztrc xbackup xci xdbload \
+    xinstinfo xkernprot xoldci xpu xregcomp xsql xsqlpro xsysrc xtracesort \
+    xuser xvttest
+do
+    ln -sf %{sapdbdir}/bin/sysmon $RPM_BUILD_ROOT%{sapdbdir}/bin/$i
+done
+
+cat $ORG/usr/bin/ireport.py | sed "s:/usr/bin/env :%{sapdbdir}/bin/:" > \
+    $RPM_BUILD_ROOT%{sapdbdir}/bin/ireport.py
+
+# env, terminfo, etc
+cp -a $ORG/usr/env $RPM_BUILD_ROOT%{sapdbdir}
+cp -a $ORG/usr/etc $RPM_BUILD_ROOT%{sapdbdir}
+cp -a $ORG/usr/terminfo $RPM_BUILD_ROOT%{sapdbdir}
+
+# pgm
+cp `ls $ORG/usr/pgm | egrep -v "\.f|\.s" | xargs printf "$ORG/usr/pgm/%%s\n"` \
+    $RPM_BUILD_ROOT%{sapdbdir}/pgm
+ln -sf /usr/bin/python $RPM_BUILD_ROOT%{sapdbdir}/pgm/python
+
+# lib
+cp `ls $ORG/usr/lib/*.so` $RPM_BUILD_ROOT%{_libdir}
+ln -sf %{_libdir} $RPM_BUILD_ROOT%{sapdbdir}/lib
+cp $ORG/usr/lib/python1.5/* $RPM_BUILD_ROOT%{_libdir}/python2.2
+ln -sf %{_libdir}/python2.2 $RPM_BUILD_ROOT%{_libdir}/python1.5
+
+# misc
+cp -a $ORG/usr/misc/DBD $RPM_BUILD_ROOT%{sapdbdir}/misc
+cp -a $ORG/usr/misc/SAP $RPM_BUILD_ROOT%{sapdbdir}/misc
+cp `ls $ORG/usr/misc/*.txt` \
+    $RPM_BUILD_ROOT%{sapdbdir}/misc
+cp `ls $ORG/usr/misc/sapdb/*.py` \
+    $RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb
+cp `ls $ORG/usr/misc/sapdb/pythondef/*.py` \
+    `ls $ORG/usr/misc/sapdb/pythondef/*.so` \
+    $RPM_BUILD_ROOT%{sapdbdir}/misc/sapdb/pythondef
+cp `ls $ORG/usr/misc/*.so` `ls $ORG/usr/misc/*.py` \
+    $ORG/usr/misc/{updcol,puclst,pchtab,get_page,instperl.pl,bgrep,patchb,x_watch} \
+    $RPM_BUILD_ROOT%{sapdbdir}/misc
+    
+# config
 sed 's:$OWN32:%{sapdbdir}/web:g 
 s:$OWN64:%{sapdbdir}/web:g
 s:$LOG:/var/log/sapdb:g
 s:Port=85:Port=9999:g' $ORG/usr/config/WebAgent74.ini \
-    > $RPM_BUILD_ROOT%{sqlspool}/ini/WebAgent74.ini
+    > $RPM_BUILD_ROOT%{sapdbvar}/config/WebAgent74.ini
+cp $ORG/usr/config/{mime.types,instweb} $RPM_BUILD_ROOT%{sapdbvar}/config
+ln -sf %{sapdbvar}/config $RPM_BUILD_ROOT%{sapdbdir}/config
+ln -sf %{sapdbvar}/config $RPM_BUILD_ROOT%{sqlspool}/ini
+
+# runtime
+cp $ORG/usr/runtime/jar/* $RPM_BUILD_ROOT%{sapdbdir}/runtime/jar
+cp $ORG/usr/runtime/7403/lib/libpcr.so $RPM_BUILD_ROOT%{sapdbdir}/runtime/7403/lib
+
+# sap
+cp `ls $ORG/usr/sap | egrep -v "\.f|\.a" | xargs printf "$ORG/usr/sap/%%s\n"` \
+    $RPM_BUILD_ROOT%{sapdbdir}/sap
+ln -sf %{sapdbdir}/misc/updcol $RPM_BUILD_ROOT%{sapdbdir}/updcol
+
+# sdk
+FILES=`find $ORG/usr/sdk -type f -printf "%%P\n" | grep -v "\.f"`
+for f in $FILES
+do 
+    mkdir -p $RPM_BUILD_ROOT%{sapdbdir}/sdk/`dirname $f`
+    cp $ORG/usr/sdk/$f $RPM_BUILD_ROOT%{sapdbdir}/sdk/$f
+done
+
+# incl 
+cp -a $ORG/usr/incl/* $RPM_BUILD_ROOT%{_includedir}/sapdb
+mv $RPM_BUILD_ROOT%{sapdbdir}/sdk/7403/incl/* \
+    $RPM_BUILD_ROOT%{_includedir}/sapdb
+rm -rf $RPM_BUILD_ROOT%{sapdbdir}/sdk/7403/incl
+ln -sf %{_includedir}/sapdb $RPM_BUILD_ROOT%{sapdbdir}/sdk/7403/incl
+
+# wrk
+ln -sf %{sapdbvar}/wrk $RPM_BUILD_ROOT%{sapdbdir}/wrk
 
 #
 # install DEMO scripts
@@ -275,17 +361,6 @@ for i in $RPM_BUILD_DIR/%{name}-%{version}/demo/*; do
     sed 's:/opt/sapdb:%{sapdbdir}:g
 s:/bin/sh:/bin/bash:' $i \
     > $RPM_BUILD_ROOT%{sapdbdir}/testdb/`basename $i`
-done
-
-#
-# install SAPDB files
-#
-awk -F\; '!/^#/ {print $1 " " $2}' %SOURCE11 | while read a b
-do
-   if [ -f $ORG/usr/$a ]; then
-       mkdir -p `dirname $RPM_BUILD_ROOT%{sapdbdir}/$b`
-       cp -p $ORG/usr/$a $RPM_BUILD_ROOT%{sapdbdir}/$b
-   fi
 done
 
 #
@@ -308,24 +383,52 @@ install -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/pam.d/sapdb
 #
 # Documentation
 #
-cp %{SOURCE7}	$RPM_BUILD_DIR/%{name}-%{version}/README.SuSE 
+rm -rf migration73_74eng.pdf
 cp %{SOURCE10}	$RPM_BUILD_DIR/%{name}-%{version}
 
 #
-# use PLD Python
+# depend/indep_prog/indep_data structure
 #
-mv $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5/* \
-    $RPM_BUILD_ROOT%{_libdir}/python2.2
-rmdir $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5
-ln -sf %{_libdir}/python2.2 $RPM_BUILD_ROOT%{sapdbdir}/depend/lib/python1.5
-ln -sf /usr/bin/python $RPM_BUILD_ROOT%{sapdbdir}/depend/pgm/python
+install -d $RPM_BUILD_ROOT%{depend}
+ln -sf %{sapdbdir}/bin $RPM_BUILD_ROOT%{depend}/bin
+ln -sf %{sapdbdir}/lib $RPM_BUILD_ROOT%{depend}/lib
+ln -sf %{sapdbdir}/env $RPM_BUILD_ROOT%{depend}/env
+ln -sf %{sapdbdir}/etc $RPM_BUILD_ROOT%{depend}/etc
+ln -sf %{sapdbdir}/pgm $RPM_BUILD_ROOT%{depend}/pgm
+ln -sf %{sapdbdir}/sap $RPM_BUILD_ROOT%{depend}/sap
+ln -sf %{sapdbdir}/wrk $RPM_BUILD_ROOT%{depend}/wrk
+ln -sf %{sapdbdir}/misc $RPM_BUILD_ROOT%{depend}/misc
+
+install -d $RPM_BUILD_ROOT%{webtools}
+ln -sf %{sapdbdir}/Documents $RPM_BUILD_ROOT%{webtools}/Documents
+ln -sf %{sapdbvar}/config $RPM_BUILD_ROOT%{webtools}/config
+ln -sf %{sapdbdir}/env $RPM_BUILD_ROOT%{webtools}/env
+ln -sf %{sapdbdir}/lib $RPM_BUILD_ROOT%{webtools}/lib
+ln -sf %{sapdbdir}/pgm $RPM_BUILD_ROOT%{webtools}/pgm
+
+install -d $RPM_BUILD_ROOT%{indep}
+ln -sf %{sapdbdir}/bin $RPM_BUILD_ROOT%{indep}/bin
+ln -sf %{sapdbdir}/env $RPM_BUILD_ROOT%{indep}/env
+ln -sf %{sapdbdir}/etc $RPM_BUILD_ROOT%{indep}/etc
+ln -sf %{_includedir}/%{name} $RPM_BUILD_ROOT%{indep}/incl
+ln -sf %{sapdbdir}/lib $RPM_BUILD_ROOT%{indep}/lib
+ln -sf %{sapdbdir}/misc $RPM_BUILD_ROOT%{indep}/misc
+ln -sf %{sapdbdir}/pgm $RPM_BUILD_ROOT%{indep}/pgm
+ln -sf %{sapdbdir}/runtime $RPM_BUILD_ROOT%{indep}/runtime
+ln -sf %{sapdbdir}/sdk $RPM_BUILD_ROOT%{indep}/sdk
+ln -sf %{sapdbdir}/terminfo $RPM_BUILD_ROOT%{indep}/terminfo
+ln -sf %{webtools} $RPM_BUILD_ROOT%{indep}/web
+
+install -d $RPM_BUILD_ROOT%{indepdat}
+ln -sf %{sapdbvar}/wrk $RPM_BUILD_ROOT%{indepdat}/wrk
+ln -sf %{sapdbvar}/config $RPM_BUILD_ROOT%{indepdat}/config
 
 #
 # sapdb user HOME scripts
 #
 cat <<EOF > $RPM_BUILD_ROOT%{sapdbvar}/.profile
-INDEP=%{sapdbdir}/indep_prog
-DEP=%{sapdbdir}/depend
+INDEP=%{indep}
+DEP=%{depend}
 
 SAPDBROOT=$DEP
 PATH=$PATH:$IND/bin:$DEP/bin
@@ -344,13 +447,13 @@ EOF
 rm -rf $RPM_BUILD_ROOT
 
 %pre ind
-if [ -z "`getgid %{name}`" ]; then
-	/usr/sbin/groupadd -g 101 -r %{name} 2> /dev/null || true
+if [ -z "`getgid sapsys`" ]; then
+	/usr/sbin/groupadd -g 101 -r sapsys 2> /dev/null || true
 fi
 
-if [ -z "`id -u %{name} 2>/dev/null`" ]; then
-	/usr/sbin/useradd -u 101 -g %{name} -M -r -d %{sapdbvar} -s /bin/bash \
-		-c "SAP DB" %{name} 2> /dev/null || true
+if [ -z "`id -u sapdb 2>/dev/null`" ]; then
+	/usr/sbin/useradd -u 101 -g sapsys -r -d %{sapdbvar} -s /bin/bash \
+		-c "SAP DB" sapdb 2> /dev/null || true
 fi
 
 %post ind
@@ -369,42 +472,43 @@ if [ "$1" = "2" ]; then
     fi
 fi
 
-DBROOT=%{sapdbdir}/indep_prog
+DBROOT=%{indep}
 export DBROOT
 
-o=`$DBROOT/bin/dbmcli -s dbm_setpath IndepDataPath %{sapdbvar}/indep_data`
+o=`$DBROOT/bin/dbmcli -s dbm_setpath IndepDataPath %{indepdat}`
 t=`echo $o | grep OK`
 if [ "$t" = "" ]; then
     echo "- could not set inpedendent data path: $o" >&2
     exit 1
 fi
 
-o=`$DBROOT/bin/dbmcli -s dbm_setpath IndepProgPath %{sapdbdir}/indep_prog`
+o=`$DBROOT/bin/dbmcli -s dbm_setpath IndepProgPath %{indep}`
 t=`echo $o | grep OK`
 if [ "$t" = "" ]; then
     echo "- could not set independent program path: $o" >&2
     exit 1
 fi
+chown sapdb.sapsys %{sqlspool}/ini/SAP_DBTech.ini
 
 #register precompiler runtime
-%{sapdbdir}/indep_prog/bin/irconf -i -p %{sapdbdir}/indep_prog/runtime/7403 >/dev/null 2>&1 || :
-%{sapdbdir}/indep_prog/bin/irconf -i -p %{sapdbdir}/indep_prog/runtime/7300 >/dev/null 2>&1 || :
-%{sapdbdir}/indep_prog/bin/irconf -i -p %{sapdbdir}/indep_prog/runtime/7250 >/dev/null 2>&1 || :
-%{sapdbdir}/indep_prog/bin/irconf -i -p %{sapdbdir}/indep_prog/runtime/7240 >/dev/null 2>&1 || :
+%{indep}/bin/irconf -i -p %{indep}/runtime/7403 >/dev/null 2>&1 || :
+%{indep}/bin/irconf -i -p %{indep}/runtime/7300 >/dev/null 2>&1 || :
+%{indep}/bin/irconf -i -p %{indep}/runtime/7250 >/dev/null 2>&1 || :
+%{indep}/bin/irconf -i -p %{indep}/runtime/7240 >/dev/null 2>&1 || :
 exit 0	
 
 %preun ind
-%{sapdbdir}/indep_prog/bin/irconf -r -p %{sapdbdir}/indep_prog/runtime/7403 >/dev/null 2>&1 || :
-%{sapdbdir}/indep_prog/bin/irconf -r -p %{sapdbdir}/indep_prog/runtime/7300 >/dev/null 2>&1 || :
-%{sapdbdir}/indep_prog/bin/irconf -r -p %{sapdbdir}/indep_prog/runtime/7250 >/dev/null 2>&1 || :
-%{sapdbdir}/indep_prog/bin/irconf -r -p %{sapdbdir}/indep_prog/runtime/7240 >/dev/null 2>&1 || :
+%{indep}/bin/irconf -r -p %{indep}/runtime/7403 >/dev/null 2>&1 || :
+%{indep}/bin/irconf -r -p %{indep}/runtime/7300 >/dev/null 2>&1 || :
+%{indep}/bin/irconf -r -p %{indep}/runtime/7250 >/dev/null 2>&1 || :
+%{indep}/bin/irconf -r -p %{indep}/runtime/7240 >/dev/null 2>&1 || :
 
 if [ "$1" != "0" ]; then
     # do nothing in upgrade case
     exit 0
 fi
 
-DBROOT=%{sapdbdir}/indep_prog
+DBROOT=%{indep}
 export DBROOT
 
 o=`fuser $DBROOT/bin/* $DBROOT/pgm/* 2>/dev/null`
@@ -417,21 +521,21 @@ if [ $? -eq 0 ]; then
     fi
 fi
 
-rm -rf %{sapdbvar}/indep_data/wrk/_OPTSAPD >/dev/null 2>&1
-rm -f %{sapdbvar}/indep_data/wrk/dbmsrv.prt >/dev/null 2>&1
-rm -f %{sapdbvar}/indep_data/config/_OPTSAPD* >/dev/null 2>&1
-rm -f %{sapdbvar}/indep_data/wrk/vserver.prot >/dev/null 2>&1
+rm -rf %{indepdat}/wrk/_OPTSAPD >/dev/null 2>&1
+rm -f %{indepdat}/wrk/dbmsrv.prt >/dev/null 2>&1
+rm -f %{indepdat}/config/_OPTSAPD* >/dev/null 2>&1
+rm -f %{indepdat}/wrk/vserver.prot >/dev/null 2>&1
 rm -f %{sqlspool}/ini/SAP_DBTech.ini* > /dev/null 2>&1
-rm -rf %{sapdbvar}/indep_data/wrk/irtrace* >/dev/null 2>&1
-rm -f %{sapdbvar}/indep_data/config/Registry1.dcom >/dev/null 2>&1
+rm -rf %{indepdat}/wrk/irtrace* >/dev/null 2>&1
+rm -f %{indepdat}/config/Registry1.dcom >/dev/null 2>&1
 rm -f %{sqlspool}/ini/Registry_dcom.ini >/dev/null 2>&1
-rm -rf %{sapdbvar}/indep_data/wrk/root >/dev/null 2>&1
+rm -rf %{indepdat}/wrk/root >/dev/null 2>&1
 exit 0
 
 %postun ind
 if [ "$1" = "0" ] ; then
 	/usr/sbin/userdel sapdb 2> /dev/null || true
-	/usr/sbin/groupdel sapdb 2> /dev/null || true
+	/usr/sbin/groupdel sapsys 2> /dev/null || true
 fi
 
 %post srv
@@ -442,7 +546,7 @@ else
 	echo "Run \"/etc/rc.d/init.d/sapdb start\" to start SAP DB."
 fi
 
-DBROOT=%{sapdbdir}/depend
+DBROOT=%{depend}
 export DBROOT
 
 o=`su - sapdb -c "umask 0003; $DBROOT/bin/dbmcli -s -R $DBROOT inst_reg -k $DBROOT"`
@@ -452,7 +556,7 @@ if [ "$t" = "" ]; then
     exit 1
 fi
 
-dcom_link=%{sapdbdir}/depend/wrk/Registry.dcom
+dcom_link=%{depend}/wrk/Registry.dcom
 if [ -e $dcom_link ] && [ ! -L $dcom_link ]; then
        rm $dcom_link >/dev/null 2>&1
 fi
@@ -468,6 +572,7 @@ if [ "$t" = "" ]; then
     echo "- could not register dbpinstall: $o" >&2
     exit 1
 fi
+chown sapdb.sapsys %{sapdbvar}/config/Registry1.dcom
 
 exit 0
 
@@ -484,7 +589,7 @@ if [ "$1" = "0" ]; then
 	/sbin/chkconfig --del sapdb
 fi
 
-DBROOT=%{sapdbdir}/depend
+DBROOT=%{depend}
 export DBROOT
 
 IND_PROG_DBROOT=`$DBROOT/bin/dbmcli dbm_getpath IndepProgPath 2>&1 | awk 'BEGIN {ok=0} NR==1 && $1="OK" {ok=1} NR==2 && ok!=0 {print $0}'`
@@ -508,7 +613,7 @@ fi
 
 rm -f $DBROOT/env/_OPTSAPD* $DBROOT/load.prot >/dev/null 2>&1
 rm -f $DBROOT/wrk/Registry.dcom*  >/dev/null 2>&1
-rm -f %{sapdbvar}/indep_data/config/Registry1.dcom >/dev/null 2>&1
+rm -f %{indepdat}/config/Registry1.dcom >/dev/null 2>&1
 rm -f %{sqlspool}/ini/Registry_dcom.ini >/dev/null 2>&1
 rm -f %{sqlspool}/ini/odbc.ini >/dev/null 2>&1
 if [ ! -z "$IND_DATA_DBROOT" ]; then
@@ -539,15 +644,15 @@ fi
 
 %post precompiler
 # register precompiler runtime
-X_PATH=%{sapdbdir}/indep_prog/bin
+X_PATH=%{indep}/bin
 export X_PATH
 su sapdb -c "$X_PATH/irconf -i -p %{sapdbdir}/interfaces/precompiler/runtime/7403" >/dev/null 2>&1
 exit 0
 
 %preun precompiler
 # unregister precompiler runtime
-IND_PATH=%{sapdbvar}/indep_data
-X_PATH=%{sapdbdir}/indep_prog/bin
+IND_PATH=%{indepdat}
+X_PATH=%{indep}/bin
 export IND_PATH X_PATH
 if [ -f $IND_PATH/wrk/irtrace.shm ]; then
 	rm -f $IND_PATH/wrk/irtrace.shm
@@ -561,128 +666,238 @@ exit 0
 %doc *.pdf
 
 %files ind
-%defattr(644,root,root,755)
-%lang(de) %doc README.SuSE 
+%defattr(644,sapdb,sapsys,755)
+%dir %{indep}
+%{indep}/*
+%dir %{indepdat}
+%{indepdat}/*
 %dir %{sapdbdir}
-%dir %{sapdbdir}/indep_prog
-%dir %{sapdbdir}/indep_prog/bin
-%attr(755,root,root) %{sapdbdir}/indep_prog/bin/*
-%{sapdbdir}/indep_prog/env
-%{sapdbdir}/indep_prog/etc
-%dir %{sapdbdir}/indep_prog/pgm
-%attr(755,root,root) %{sapdbdir}/indep_prog/pgm/*
-%dir %{sapdbdir}/indep_prog/runtime
-%dir %{sapdbdir}/indep_prog/runtime/7403
-%dir %{sapdbdir}/indep_prog/runtime/7403/lib
-%attr(755,root,root) %{sapdbdir}/indep_prog/runtime/7403/lib/*
-%{sapdbdir}/indep_prog/terminfo
-%dir %attr(755,sapdb,sapdb) %{sapdbvar}
-%attr(644,sapdb,sapdb) %{sapdbvar}/.profile
-%dir %attr(775,sapdb,sapdb) %{sapdbvar}/indep_data
-%dir %attr(775,sapdb,sapdb) %{sapdbvar}/indep_data/config
-%dir %attr(775,sapdb,sapdb) %{sapdbvar}/indep_data/wrk
-%dir %attr(775,root,sapdb) %{sqlspool}
-%dir %attr(775,root,sapdb) %{sqlspool}/ini
-%dir %attr(775,root,sapdb) %{sqlspool}/dbspeed
-%dir %attr(775,root,sapdb) %{sqlspool}/diag
-%dir %attr(775,root,sapdb) %{sqlspool}/fifo
-%dir %attr(775,root,sapdb) %{sqlspool}/ipc
-%dir %attr(775,root,sapdb) %{sqlspool}/pid
-%dir %attr(775,root,sapdb) %{sqlspool}/ppid
-%dir %{sapdbdir}/interfaces
+%dir %{sapdbdir}/bin
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/dbanalyzer
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/dbmcli
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/dbmgetf
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/irconf
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/ireport.py
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/ps_all
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/sdbinfo
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/sysmon
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_analys
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_cons
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_maketi
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_server
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_wiz
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_wizstop
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xsysrc
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xuser
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xuserUnicode
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xvttest
+%{sapdbdir}/lib
+%attr(755,sapdb,sapsys) %{_libdir}/libsqlrte-nouniqueid.so
+%attr(755,sapdb,sapsys) %{_libdir}/libsqlrte.so
+%dir %{sapdbdir}/env
+%{sapdbdir}/env/*.cfg
+%{sapdbdir}/env/vserver.use
+%{sapdbdir}/etc
+%dir %{sapdbdir}/pgm
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/maketi
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/vserver
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/vttest
+%dir %{sapdbdir}/runtime
+%dir %{sapdbdir}/runtime/7403
+%dir %{sapdbdir}/runtime/7403/lib
+%attr(755,sapdb,sapsys) %{sapdbdir}/runtime/7403/lib/*
+%{sapdbdir}/terminfo
+%attr(644,sapdb,sapsys) %{sapdbvar}/.profile
+%dir %attr(775,sapdb,sapsys) %{sapdbvar}
+%dir %attr(775,sapdb,sapsys) %{sapdbvar}/config
+%dir %attr(775,sapdb,sapsys) %{sapdbvar}/wrk
+%{sapdbdir}/wrk
+%dir %attr(775,sapdb,sapsys) %{sqlspool}
+%{sqlspool}/ini
+%dir %attr(775,sapdb,sapsys) %{sqlspool}/dbspeed
+%dir %attr(775,sapdb,sapsys) %{sqlspool}/diag
+%dir %attr(775,sapdb,sapsys) %{sqlspool}/fifo
+%dir %attr(775,sapdb,sapsys) %{sqlspool}/ipc
+%dir %attr(775,sapdb,sapsys) %{sqlspool}/pid
+%dir %attr(775,sapdb,sapsys) %{sqlspool}/ppid
 
 %files srv
-%defattr(644,root,root,755)
-%dir %{sapdbdir}/depend
-%dir %{sapdbdir}/depend/bin
-%attr(755,root,root) %{sapdbdir}/depend/bin/*
-%{sapdbdir}/depend/env
-%{sapdbdir}/depend/etc
-%dir %{sapdbdir}/depend/lib
-%attr(755,root,root) %{sapdbdir}/depend/lib/*.so
-%{sapdbdir}/depend/lib/python1.5
+%defattr(644,sapdb,sapsys,755)
+%dir %{depend}
+%{depend}/*
+%doc %{sapdbdir}/misc/*.txt
+%dir %{sapdbdir}/bin
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/backint
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/dbmcli
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/loadercli
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/op2np
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/pipe2file
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/ps_all
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/repmcli
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/sqlver
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_diagnose
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_ping
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_python
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xdbload
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xkernprot
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xregcomp
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xsql
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/xtracesort
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/buildinfo
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/dbmcli-HelpInst
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/odbclnk
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_genwin
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_install
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/x_look
+%{sapdbdir}/env/*.py
+%{sapdbdir}/env/*.pcf
+%{sapdbdir}/env/general.use
+%{sapdbdir}/env/kernprot.use
+%{sapdbdir}/env/regcomp.use
+%{sapdbdir}/env/xstart.use
+%{sapdbdir}/env/xstop.use
+%{sapdbdir}/env/de/PRECOMM.de
+%{sapdbdir}/env/de/SQL*.de
+%{sapdbdir}/env/en/PRECOMM.en
+%{sapdbdir}/env/en/DBM.en
+%{sapdbdir}/env/en/SQL*.en
+%{sapdbdir}/env/en/REPM.en
+%attr(755,sapdb,sapsys) %{_libdir}/ContentStorage.so
+%attr(755,sapdb,sapsys) %{_libdir}/dbpinstall.so
+%attr(755,sapdb,sapsys) %{_libdir}/liboms.so
+%attr(755,sapdb,sapsys) %{_libdir}/libomssimul.so
+%attr(755,sapdb,sapsys) %{_libdir}/libsqlcls.so
+%{_libdir}/python1.5
 %{_libdir}/python2.2
-%dir %{sapdbdir}/depend/misc
-%attr(755,root,root) %{sapdbdir}/depend/misc/bgrep
-%attr(755,root,root) %{sapdbdir}/depend/misc/get_page
-%attr(755,root,root) %{sapdbdir}/depend/misc/patchb
-%attr(755,root,root) %{sapdbdir}/depend/misc/pchtab
-%attr(755,root,root) %{sapdbdir}/depend/misc/puclst
-%attr(755,root,root) %{sapdbdir}/depend/misc/updcol
-%attr(755,root,root) %{sapdbdir}/depend/misc/x_watch
-%{sapdbdir}/depend/misc/*.py
-%dir %{sapdbdir}/depend/misc/sapdb
-%{sapdbdir}/depend/misc/sapdb/*.py
-%dir %{sapdbdir}/depend/misc/sapdb/pythondef
-%attr(755,root,root) %{sapdbdir}/depend/misc/sapdb/pythondef/*.so
-%{sapdbdir}/depend/misc/sapdb/pythondef/*.py
-%dir %{sapdbdir}/depend/pgm
-%attr(755,root,root) %{sapdbdir}/depend/pgm/*
-%dir %{sapdbdir}/depend/sap
-%attr(755,root,root) %{sapdbdir}/depend/sap/updcol
-%{sapdbdir}/depend/sap/grantxdb.dbm
-%attr(755,sapdb,sapdb) %{sapdbdir}/depend/wrk
-%attr(744,root,root) /etc/rc.d/init.d/sapdb
+%dir %{sapdbdir}/misc
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/bgrep
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/get_page
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/instperl.pl
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/patchb
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/pchtab
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/puclst
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/updcol
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/x_watch
+#%{sapdbdir}/misc/DBD
+%{sapdbdir}/misc/SAP
+%{sapdbdir}/misc/*.py
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/*.so
+%dir %{sapdbdir}/misc/sapdb
+%{sapdbdir}/misc/sapdb/*.py
+%dir %{sapdbdir}/misc/sapdb/pythondef
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/sapdb/pythondef/*.so
+%{sapdbdir}/misc/sapdb/pythondef/*.py
+%dir %{sapdbdir}/pgm
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/console
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/dbmext
+%attr(755,root,sapsys) %{sapdbdir}/pgm/dbmsrv
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/diagnose
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/dumpcomreg
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/kernel
+%attr(755,root,sapsys) %{sapdbdir}/pgm/lserver
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/pu
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/python
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/regcomp
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/slowknl
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/sqlfilter
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/sysrc
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/tracesort
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/backup
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/clr_kernel
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/clr_ps_ipc
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/cr_param
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/decompr
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/getparam
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/idl2xml
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/odbcreg
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/omststknl
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/putparam
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/renparam
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/slowci
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/sqlfiltern
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/start
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/stop
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/userx
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/wizard
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/xml2ispc
+%dir %{sapdbdir}/sap
+%attr(755,sapdb,sapsys) %{sapdbdir}/sap/lcinit
+%attr(755,sapdb,sapsys) %{sapdbdir}/sap/niping
+%{sapdbdir}/sap/updcol
+%{sapdbdir}/sap/*.dbm
+%{sapdbdir}/sap/*.lst
+%attr(755,sapdb,sapsys) %{sapdbdir}/sap/*.so
+%attr(744,sapdb,sapsys) /etc/rc.d/init.d/sapdb
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/sapdb
+%{sapdbdir}/etc
 /etc/pam.d/sapdb
 
 %files web
-%defattr(644,root,root,755)
-%dir %{sapdbdir}/web
-%{sapdbdir}/web/Documents
-%{sapdbdir}/web/config
-%{sapdbdir}/web/env
-%dir %{sapdbdir}/web/lib
-%attr(755,root,root) %{sapdbdir}/web/lib/*
-%dir %{sapdbdir}/web/pgm
-%attr(755,root,root) %{sapdbdir}/web/pgm/wahttp
-%{sapdbdir}/web/pgm/wahttp.conf
-%attr(744,root,root) /etc/rc.d/init.d/sapdb-web
-%{sqlspool}/ini/WebAgent74.ini
-%dir %attr(770,sapdb,nobody) /var/log/sapdb
+%defattr(644,sapdb,sapsys,755)
+%dir %{webtools}
+%{webtools}/*
+%dir %{sapdbdir}
+%{sapdbdir}/Documents
+%{sapdbdir}/config
+%{sapdbdir}/env/webdav.ins
+%attr(755,sapdb,sapsys) %{_libdir}/libdbfsapi.so
+%attr(755,sapdb,sapsys) %{_libdir}/libwapi.so
+%attr(755,sapdb,sapsys) %{_libdir}/libwdvcapi.so
+%attr(755,sapdb,sapsys) %{_libdir}/libwdvhandler.so
+%attr(755,sapdb,sapsys) %{_libdir}/waecho.so
+%attr(755,sapdb,sapsys) %{_libdir}/webdbm.so
+%attr(755,sapdb,sapsys) %{_libdir}/websql.so
+%attr(755,sapdb,sapsys) %{sapdbdir}/pgm/wahttp
+%{sapdbdir}/pgm/wahttp.conf
+%attr(744,sapdb,sapsys) /etc/rc.d/init.d/sapdb-web
+%{sqlspool}/ini
+%dir %attr(770,sapdb,sapsys) /var/log/sapdb
 %dir /var/run/wahttp
+%{sapdbvar}/config/*.ini
+%{sapdbvar}/config/mime.types
+%attr(755,sapdb,sapsys) %{sapdbvar}/config/instweb
 
 %files precompiler
-%defattr(644,root,root,755)
-%dir %{sapdbdir}/interfaces/precompiler
-%dir %{sapdbdir}/interfaces/precompiler/bin
-%attr(755,root,root) %{sapdbdir}/interfaces/precompiler/bin/*
-%dir %{sapdbdir}/interfaces/precompiler/runtime
-%dir %{sapdbdir}/interfaces/precompiler/runtime/7403
-%dir %{sapdbdir}/interfaces/precompiler/runtime/7403/lib
-%attr(755,root,root) %{sapdbdir}/interfaces/precompiler/runtime/7403/lib/*
-%dir %{sapdbdir}/interfaces/precompiler/sdk
-%dir %{sapdbdir}/interfaces/precompiler/sdk/7403
-%dir %{sapdbdir}/interfaces/precompiler/sdk/7403/bin
-%attr(755,root,root) %{sapdbdir}/interfaces/precompiler/sdk/7403/bin/*
-%{sapdbdir}/interfaces/precompiler/sdk/7403/env
-%{sapdbdir}/interfaces/precompiler/sdk/7403/incl
-%{sapdbdir}/interfaces/precompiler/sdk/7403/lib
-%dir %{sapdbdir}/interfaces/precompiler/sdk/7403/pgm
-%attr(755,root,root) %{sapdbdir}/interfaces/precompiler/sdk/7403/pgm/*
+%defattr(644,sapdb,sapsys,755)
+%dir %{sapdbdir}/sdk
+%dir %{sapdbdir}/sdk/7403
+%dir %{sapdbdir}/sdk/7403/bin
+%attr(755,sapdb,sapsys) %{sapdbdir}/sdk/7403/bin/*
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/cpc
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/cpclnk
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/irtrace
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/sqlver
+%attr(755,sapdb,sapsys) %{sapdbdir}/bin/sqlwhat
+%{sapdbdir}/sdk/7403/env
+%{sapdbdir}/sdk/7403/incl
+%{sapdbdir}/sdk/7403/lib
+%dir %{sapdbdir}/sdk/7403/pgm
+%attr(755,sapdb,sapsys) %{sapdbdir}/sdk/7403/pgm/*
+%{_includedir}/sapdb
 
 %files callif
-%defattr(644,root,root,755)
-%dir %{sapdbdir}/interfaces/odbc
-%{sapdbdir}/interfaces/odbc/env
-%{sapdbdir}/interfaces/odbc/incl
-%dir %{sapdbdir}/interfaces/odbc/lib
-%attr(755,root,root) %{sapdbdir}/interfaces/odbc/lib/*.so
-%{sapdbdir}/interfaces/odbc/lib/*.a
-%{sapdbdir}/interfaces/jdbc
+%defattr(644,sapdb,sapsys,755)
+%{sapdbdir}/runtime/jar
+%attr(755,sapdb,sapsys) %{_libdir}/libodcompr.so
+%attr(755,sapdb,sapsys) %{_libdir}/libsqlod.so
+%{sapdbdir}/env/de/ODBCM.de
+%{sapdbdir}/env/en/ODBCM.en
 
 %files scriptif
-%defattr(644,root,root,755)
-%dir %{sapdbdir}/interfaces/python
-%dir %{sapdbdir}/interfaces/python/misc
-%{sapdbdir}/interfaces/python/misc/*.py
-%dir %{sapdbdir}/interfaces/python/misc/sapdb
-%{sapdbdir}/interfaces/python/misc/sapdb/*.py
-%dir %{sapdbdir}/interfaces/python/misc/sapdb/pythondef
-%attr(755,root,root) %{sapdbdir}/interfaces/python/misc/sapdb/pythondef/*.so
-%{sapdbdir}/interfaces/python/misc/sapdb/pythondef/*.py
+%defattr(644,sapdb,sapsys,755)
+%{sapdbdir}/misc/dbm.py
+%{sapdbdir}/misc/loader.py
+%{sapdbdir}/misc/repman.py
+%{sapdbdir}/misc/sapdbapi.py
+%{sapdbdir}/misc/sapdb/__init__.py
+%{sapdbdir}/misc/sapdb/dbapi.py
+%{sapdbdir}/misc/sapdb/dbm.py
+%{sapdbdir}/misc/sapdb/loader.py
+%{sapdbdir}/misc/sapdb/sql.py
+%{sapdbdir}/misc/sapdb/pythondef/__init__.py
+%attr(755,sapdb,sapsys) %{sapdbdir}/misc/sapdb/pythondef/*.so
 
 %files testdb
-%defattr(644,root,root,755)
+%defattr(644,sapdb,sapsys,755)
 %dir %{sapdbdir}/testdb
-%attr(755,sapdb,sapdb) %{sapdbdir}/testdb/*
+%attr(755,sapdb,sapsys) %{sapdbdir}/testdb/*
