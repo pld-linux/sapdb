@@ -537,7 +537,7 @@ chown sapdb:sapsys %{sqlspool}/ini/SAP_DBTech.ini
 %{indep}/bin/irconf -i -p %{indep}/runtime/7300 >/dev/null 2>&1 || :
 %{indep}/bin/irconf -i -p %{indep}/runtime/7250 >/dev/null 2>&1 || :
 %{indep}/bin/irconf -i -p %{indep}/runtime/7240 >/dev/null 2>&1 || :
-exit 0	
+exit 0
 
 %preun ind
 %{indep}/bin/irconf -r -p %{indep}/runtime/7403 >/dev/null 2>&1 || :
