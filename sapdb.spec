@@ -632,7 +632,7 @@ exit 0
 %{sapdbdir}/web/pgm/wahttp.conf
 %attr(744,root,root) /etc/rc.d/init.d/sapdb-web
 %{sqlspool}/ini/WebAgent74.ini
-%dir /var/log/sapdb
+%dir %attr(770,sapdb,nobody) /var/log/sapdb
 %dir /var/run/wahttp
 
 %files precompiler
