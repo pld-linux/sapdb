@@ -1,0 +1,15 @@
+diff -Nur V74_03_17.orig/SAPDB_ORG/sys/desc/pyinst.mac V74_03_17.chng/SAPDB_ORG/sys/desc/pyinst.mac
+--- V74_03_17.orig/SAPDB_ORG/sys/desc/pyinst.mac	Thu Mar 20 16:34:41 2003
++++ V74_03_17.chng/SAPDB_ORG/sys/desc/pyinst.mac	Thu May 29 12:16:16 2003
+@@ -78,8 +78,9 @@
+ 
+ # these should appear somewhere else in all
+ # having them here simplifies testing
+-sqlpy
+-loaderpy
++#sqlpy
++#loaderpy
++scriptall
+ lserver
+ allsqlr
+ 
