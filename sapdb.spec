@@ -652,7 +652,7 @@ exit 0
 %{sapdbdir}/interfaces/precompiler/sdk/7403/incl
 %{sapdbdir}/interfaces/precompiler/sdk/7403/lib
 %dir %{sapdbdir}/interfaces/precompiler/sdk/7403/pgm
-%attr(755,root,roo) %{sapdbdir}/interfaces/precompiler/sdk/7403/pgm/*
+%attr(755,root,root) %{sapdbdir}/interfaces/precompiler/sdk/7403/pgm/*
 
 %files callif
 %defattr(644,root,root,755)
