@@ -18,17 +18,24 @@ Release:	0.5
 License:	GPL
 Group:		Applications/Databases
 Source0:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-source-%{mainver}.0%{subver}.tgz
+# Source0-md5:	6a2635b0859c0f8f1b02c43fa44b52ff
 Source1:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-devtools-src.tgz
+# Source1-md5:	a0f37f9d099ce25bc586c75179a5a70f
 Source2:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-htmldoc-%{mainver}.tgz
+# Source2-md5:	5f9671d6733cae53d5f7438a3a22eb81
 Source3:	%{name}.init
 Source4:	%{name}-web.init
 Source5:	%{name}-suse-demo.tar.bz2
+# Source5-md5:	7087a65261c8e8b35be8bca3531cbb94
 Source6:	%{name}-sysconfig
 Source7:	%{name}-suse-README
 Source8:	%{name}-suse-pam
 Source10:	migration73_74eng.pdf
+# Source10-md5:	02c2ee8729e456f359e6f098c4a781df
 Source11:	%{name}-suse-rpm.lst
+# Source11-md5:	197a2c62b61ac148d3642d70951a45a1
 Source12:	%{name}-suse-firststeps.tgz
+# Source12-md5:	71c509c36a830f5c56e0fa423fc6a33a
 Patch0:		%{name}-suse-desc.patch
 Patch2:		%{name}-suse-src.patch
 Patch4:		%{name}-suse-python22.patch
