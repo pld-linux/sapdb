@@ -5,7 +5,7 @@
 Summary:	SAP DB
 Name:		sapdb
 Version:	%{mainver}.%{subver}
-Release:	0.3
+Release:	0.4
 License:	GPL
 Group:		Applications/Databases
 Source0:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-source-%{mainver}.0%{subver}.tgz
@@ -20,6 +20,7 @@ Source8:	%{name}-suse-pam
 Source10:	migration73_74eng.pdf
 Source11:	%{name}-suse-rpm.lst
 Source12:	%{name}-suse-firststeps.tgz
+Source13:	%{name}-websvr-homesite.html
 Patch0:		%{name}-suse-desc.patch
 Patch2:		%{name}-suse-src.patch
 Patch4:		%{name}-suse-python22.patch
@@ -319,6 +320,12 @@ export INDEP DEP SAPDBROOT PATH
 #export CLASSPATH
 #export PERL5LIB
 EOF
+
+#
+# WebServer home site
+#
+rm -f $RPM_BUILD_ROOT%{sapdbdir}/web/Documents/index.html
+cp %{SOURCE13} $RPM_BUILD_ROOT%{sapdbdir}/web/Documents/index.html
 
 %clean
 rm -rf $RPM_BUILD_ROOT
