@@ -883,7 +883,7 @@ exit 0
 %{sapdbdir}/sap/*.dbm
 %{sapdbdir}/sap/*.lst
 %attr(755,sapdb,sapsys) %{sapdbdir}/sap/*.so
-%attr(744,sapdb,sapsys) /etc/rc.d/init.d/sapdb
+%attr(754,sapdb,sapsys) /etc/rc.d/init.d/sapdb
 %config(noreplace) %verify(not size mtime md5) /etc/sysconfig/sapdb
 %{sapdbdir}/etc
 /etc/pam.d/sapdb
@@ -905,7 +905,7 @@ exit 0
 %attr(755,sapdb,sapsys) %{_libdir}/websql.so
 %attr(755,sapdb,sapsys) %{sapdbdir}/pgm/wahttp
 %{sapdbdir}/pgm/wahttp.conf
-%attr(744,sapdb,sapsys) /etc/rc.d/init.d/sapdb-web
+%attr(754,sapdb,sapsys) /etc/rc.d/init.d/sapdb-web
 %{sqlspool}/ini
 %dir %attr(770,sapdb,sapsys) /var/log/sapdb
 %dir /var/run/wahttp
