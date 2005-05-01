@@ -100,11 +100,11 @@ Group:		Applications/Databases
 
 %description docs
 HTML documentation for SAP DB.
-For more information please see http://www.sapdb.org/ .
+For more information please see <http://www.sapdb.org/>.
 
 %description docs -l pl
 Dokumentacja HTML do SAP DB.
-Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
+Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
 
 %package ind
 Summary:	SAP DB - release independend programs
@@ -119,6 +119,8 @@ Requires(postun):	/usr/sbin/userdel
 Requires(post,postun):	/sbin/chkconfig
 Requires:	python >= 2.2
 Requires:	python-modules >= 2.2
+# User sapdb shell is /bin/bash. require shell
+Requires:	bash
 Provides:	group(sapsys)
 Provides:	user(sapdb)
 
@@ -126,14 +128,14 @@ Provides:	user(sapdb)
 - remote communication server
 - command line tools for database administration
 - precompiler runtime (for applications built by SAP DB precompiler)
-For more information please see http://www.sapdb.org/ .
+For more information please see <http://www.sapdb.org/>.
 
 %description ind -l pl
 - serwer zdalnego dostêpu
 - narzêdzia linii poleceñ do administracji bazami danych
 - czê¶æ uruchomieniowa prekompilatora (dla aplikacji zbudowanych przez
   prekompilator SAP DB)
-Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
+Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
 
 %package srv
 Summary:	SAP DB database server
@@ -182,12 +184,12 @@ Requires:	%{name}-ind = %{version}-%{release}
 %description callif
 - ODBC driver
 - JDBC driver
-For more information please see http://www.sapdb.org/ .
+For more information please see <http://www.sapdb.org/>.
 
 %description callif -l pl
 - sterownik ODBC
 - sterownik JDBC
-Wiêcej informacji mo¿na znale¼æ na stronie http://www.sapdb.org/ .
+Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
 
 %package scriptif
 Summary:	SAP DB Perl and Python interfaces
@@ -495,24 +497,8 @@ EOF
 rm -rf $RPM_BUILD_ROOT
 
 %pre ind
-if [ -n "`/usr/bin/getgid sapsys`" ]; then
-	if [ "`/usr/bin/getgid sapsys`" != "101" ]; then
-		echo "Error: group sapsys doesn't have gid=101. Correct this before installing sapdb." 1>&2
-		exit 1
-	fi
-else
-	/usr/sbin/groupadd -g 101 sapsys 1>&2
-fi
-
-if [ -n "`/bin/id -u sapdb 2>/dev/null`" ]; then
-	if [ "`/bin/id -u sapdb`" != "101" ]; then
-		echo "Error: user sapdb doesn't have uid=101. Correct this before installing sapdb." 1>&2
-		exit 1
-	fi
-else
-	/usr/sbin/useradd -u 101 -g sapsys -d %{sapdbvar} -s /bin/bash \
-		-c "SAP DB" sapdb 1>&2
-fi
+%groupadd -P %{name}-ind -g 101 sapsys
+%useradd -P %{name}-ind -u 101 -g sapsys -d %{sapdbvar} -s /bin/bash -c "SAP DB" sapdb
 
 %post ind
 if [ "$1" = "2" ]; then
