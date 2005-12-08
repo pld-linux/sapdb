@@ -44,7 +44,7 @@ StartPort () {
 		for _i in $_o; do
 			_port=`echo $_i | sed -e s/^.*Port=//`
 		done
-	fi	
+	fi
 }
 
 RETVAL=0
@@ -74,13 +74,13 @@ case "$1" in
 		RunningPort
 		msg_stopping $(nls "SAP DB WebServer on port %s" "$_port")
 		killproc $SAPDBWEB_BIN
-		rm -f /var/lock/subsys/sapdb-web >/dev/null 2>&1	
+		rm -f /var/lock/subsys/sapdb-web >/dev/null 2>&1
 	else
 		msg_not_running "SAP DB WebServer"
-	fi	
+	fi
 	;;
   status)
-	status $SAPDBWEB_BIN 
+	status $SAPDBWEB_BIN
 	exit $?
 	;;
   restart|force-reload)

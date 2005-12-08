@@ -59,7 +59,7 @@ case "$1" in
 			RET=$?
 			[ $RET -eq 0 ] && ok || fail
 			[ $RETVAL -eq 0 ] && RETVAL=$RET
-		done		
+		done
 	else
 		msg_already_running "SAPDB communication server"
 	fi
@@ -86,7 +86,7 @@ case "$1" in
 		rm -f /var/lock/subsys/sapdb >/dev/null 2>&1
 	else
 		msg_not_running "SAPDB communication server"
-	fi	
+	fi
 	;;
   status)
 	status sapdb
