@@ -22,11 +22,11 @@ Version:	%{mainver}.%{subver}
 Release:	0.6
 License:	GPL
 Group:		Applications/Databases
-Source0:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-source-%{mainver}.0%{subver}.tgz
+Source0:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/%{name}-source-%{mainver}.0%{subver}.tgz
 # Source0-md5:	6a2635b0859c0f8f1b02c43fa44b52ff
-Source1:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-devtools-src.tgz
+Source1:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/%{name}-devtools-src.tgz
 # Source1-md5:	a0f37f9d099ce25bc586c75179a5a70f
-Source2:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/sapdb-htmldoc-%{mainver}.tgz
+Source2:	ftp://ftp.sap.com/pub/sapdb/%{mainver}/%{name}-htmldoc-%{mainver}.tgz
 # Source2-md5:	5f9671d6733cae53d5f7438a3a22eb81
 Source3:	%{name}.init
 Source4:	%{name}-web.init
@@ -69,10 +69,10 @@ BuildRequires:	libsigc++12-devel >= 1.2.4
 BuildRequires:	ncurses-devel
 BuildRequires:	pam-devel
 BuildRequires:	perl
-BuildRequires:	python >= 2.2
-BuildRequires:	python-libs >= 2.2
-BuildRequires:	python-devel >= 2.2
 BuildRequires:	python-devel-src >= 2.2
+BuildRequires:	python-devel >= 2.2
+BuildRequires:	python-libs >= 2.2
+BuildRequires:	python >= 2.2
 BuildRequires:	rpmbuild(macros) >= 1.159
 BuildRequires:	vim-static
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -99,26 +99,26 @@ Summary(pl):	Dokumentacja SAP DB
 Group:		Applications/Databases
 
 %description docs
-HTML documentation for SAP DB.
-For more information please see <http://www.sapdb.org/>.
+HTML documentation for SAP DB. For more information please see
+<http://www.sapdb.org/>.
 
 %description docs -l pl
-Dokumentacja HTML do SAP DB.
-Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
+Dokumentacja HTML do SAP DB. Wiêcej informacji mo¿na znale¼æ na
+stronie <http://www.sapdb.org/>.
 
 %package ind
 Summary:	SAP DB - release independend programs
 Summary(pl):	SAP DB - programy niezale¿ne od wersji
 Group:		Applications/Databases
+Requires(post,postun):	/sbin/chkconfig
+Requires(postun):	/usr/sbin/groupdel
+Requires(postun):	/usr/sbin/userdel
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
-Requires(postun):	/usr/sbin/groupdel
-Requires(postun):	/usr/sbin/userdel
-Requires(post,postun):	/sbin/chkconfig
-Requires:	python >= 2.2
 Requires:	python-modules >= 2.2
+Requires:	python >= 2.2
 # User sapdb shell is /bin/bash. require shell
 Requires:	bash
 Provides:	group(sapsys)
@@ -141,8 +141,8 @@ Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
 Summary:	SAP DB database server
 Summary(pl):	Serwer bazodanowy SAP DB
 Group:		Applications/Databases
-Requires(pre):	%{name}-ind = %{version}-%{release}
 Requires(post,postun):	/sbin/chkconfig
+Requires(pre):	%{name}-ind = %{version}-%{release}
 
 %description srv
 SAP DB database server.
@@ -154,8 +154,8 @@ Serwer bazodanowy SAP DB.
 Summary:	SAP DB web tools
 Summary(pl):	Narzêdzia WWW dla SAP DB
 Group:		Applications/Databases
-Requires:	%{name}-ind = %{version}-%{release}
 Requires:	%{name}-callif = %{version}-%{release}
+Requires:	%{name}-ind = %{version}-%{release}
 
 %description web
 SAP DB web tools.
@@ -167,7 +167,7 @@ Narzêdzia WWW dla SAP DB.
 Summary:	SAP DB precompiler
 Summary(pl):	Prekompilator SAP DB
 Group:		Applications/Databases
-PreReq:		%{name}-ind = %{version}-%{release}
+Requires:	%{name}-ind = %{version}-%{release}
 
 %description precompiler
 SAP DB precompiler.
@@ -195,7 +195,7 @@ Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
 Summary:	SAP DB Perl and Python interfaces
 Summary(pl):	Interfejsy Perla i Pythona do SAP DB
 Group:		Applications/Databases
-PreReq:		%{name}-ind = %{version}-%{release}
+Requires:	%{name}-ind = %{version}-%{release}
 
 %description scriptif
 SAP DB Perl and Python interfaces.
@@ -207,8 +207,8 @@ Interfejsy Perla i Pythona do SAP DB.
 Summary:	SAP DB test database
 Summary:	Testowa baza danych SAP DB
 Group:		Applications/Databases
-PreReq:		%{name}-ind = %{version}-%{release}
-PreReq:		%{name}-srv = %{version}-%{release}
+Requires:	%{name}-ind = %{version}-%{release}
+Requires:	%{name}-srv = %{version}-%{release}
 
 %description testdb
 This package contains a script tp create and immediately start
@@ -390,7 +390,7 @@ ln -sf %{sapdbdir}/misc/updcol $RPM_BUILD_ROOT%{sapdbdir}/updcol
 # sdk
 FILES=`find $ORG/usr/sdk -type f -printf "%%P\n" | grep -v "\.f"`
 for f in $FILES; do
-	mkdir -p $RPM_BUILD_ROOT%{sapdbdir}/sdk/`dirname $f`
+	install -d $RPM_BUILD_ROOT%{sapdbdir}/sdk/`dirname $f`
 	cp $ORG/usr/sdk/$f $RPM_BUILD_ROOT%{sapdbdir}/sdk/$f
 done
 
@@ -417,19 +417,19 @@ done
 #
 # init stuff
 #
-mkdir -p $RPM_BUILD_ROOT/var/adm/fillup-templates \
+install -d $RPM_BUILD_ROOT/var/adm/fillup-templates \
 	 $RPM_BUILD_ROOT/etc/rc.d/init.d \
 	 $RPM_BUILD_ROOT/var/log/sapdb \
 	 $RPM_BUILD_ROOT/var/run/wahttp
-install -m 600 %{SOURCE6} $RPM_BUILD_ROOT/etc/sysconfig/sapdb
-install -m 744 %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/sapdb
-install -m 754 %{SOURCE4} $RPM_BUILD_ROOT/etc/rc.d/init.d/sapdb-web
+install %{SOURCE6} $RPM_BUILD_ROOT/etc/sysconfig/sapdb
+install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/sapdb
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/rc.d/init.d/sapdb-web
 
 #
 # PAM
 #
-mkdir -p $RPM_BUILD_ROOT/etc/pam.d
-install -m 644 %{SOURCE8} $RPM_BUILD_ROOT/etc/pam.d/sapdb
+install -d $RPM_BUILD_ROOT/etc/pam.d
+install %{SOURCE8} $RPM_BUILD_ROOT/etc/pam.d/sapdb
 
 #
 # Documentation
@@ -872,7 +872,7 @@ exit 0
 %{sapdbdir}/sap/*.lst
 %attr(755,sapdb,sapsys) %{sapdbdir}/sap/*.so
 %attr(754,root,root) /etc/rc.d/init.d/sapdb
-%config(noreplace) %verify(not size mtime md5) /etc/sysconfig/sapdb
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/sapdb
 %{sapdbdir}/etc
 /etc/pam.d/sapdb
 
