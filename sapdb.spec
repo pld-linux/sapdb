@@ -64,16 +64,15 @@ Patch24:	%{name}-python-dep.patch
 URL:		http://www.sapdb.org/
 BuildRequires:	bash
 BuildRequires:	bison
-BuildRequires:	glibc-devel
 BuildRequires:	libsigc++12-devel >= 1.2.4
 BuildRequires:	ncurses-devel
 BuildRequires:	pam-devel
 BuildRequires:	perl
-BuildRequires:	python-devel-src >= 2.2
-BuildRequires:	python-devel >= 2.2
-BuildRequires:	python-libs >= 2.2
 BuildRequires:	python >= 2.2
-BuildRequires:	rpmbuild(macros) >= 1.159
+BuildRequires:	python-devel >= 2.2
+BuildRequires:	python-devel-src >= 2.2
+BuildRequires:	python-libs >= 2.2
+BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	vim-static
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -110,15 +109,16 @@ stronie <http://www.sapdb.org/>.
 Summary:	SAP DB - release independend programs
 Summary(pl):	SAP DB - programy niezale¿ne od wersji
 Group:		Applications/Databases
-Requires(post,postun):	/sbin/chkconfig
+Requires(post,prun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
 Requires(postun):	/usr/sbin/userdel
 Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
-Requires:	python-modules >= 2.2
 Requires:	python >= 2.2
+Requires:	python-modules >= 2.2
+Requires:	rc-scripts
 # User sapdb shell is /bin/bash. require shell
 Requires:	bash
 Provides:	group(sapsys)
@@ -128,21 +128,23 @@ Provides:	user(sapdb)
 - remote communication server
 - command line tools for database administration
 - precompiler runtime (for applications built by SAP DB precompiler)
+
 For more information please see <http://www.sapdb.org/>.
 
 %description ind -l pl
 - serwer zdalnego dostêpu
 - narzêdzia linii poleceñ do administracji bazami danych
 - czê¶æ uruchomieniowa prekompilatora (dla aplikacji zbudowanych przez
-  prekompilator SAP DB)
-Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
+  prekompilator SAP DB) Wiêcej informacji mo¿na znale¼æ na stronie
+  <http://www.sapdb.org/>.
 
 %package srv
 Summary:	SAP DB database server
 Summary(pl):	Serwer bazodanowy SAP DB
 Group:		Applications/Databases
-Requires(post,postun):	/sbin/chkconfig
+Requires(post,preun):	/sbin/chkconfig
 Requires(pre):	%{name}-ind = %{version}-%{release}
+Requires:	rc-scripts
 
 %description srv
 SAP DB database server.
@@ -154,8 +156,10 @@ Serwer bazodanowy SAP DB.
 Summary:	SAP DB web tools
 Summary(pl):	Narzêdzia WWW dla SAP DB
 Group:		Applications/Databases
+Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-callif = %{version}-%{release}
 Requires:	%{name}-ind = %{version}-%{release}
+Requires:	rc-scripts
 
 %description web
 SAP DB web tools.
@@ -184,11 +188,13 @@ Requires:	%{name}-ind = %{version}-%{release}
 %description callif
 - ODBC driver
 - JDBC driver
+
 For more information please see <http://www.sapdb.org/>.
 
 %description callif -l pl
 - sterownik ODBC
 - sterownik JDBC
+
 Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
 
 %package scriptif
@@ -584,11 +590,7 @@ fi
 
 %post srv
 /sbin/chkconfig --add sapdb
-if [ -f /var/lock/subsys/sapdb ]; then
-	/etc/rc.d/init.d/sapdb restart 1>&2
-else
-	echo "Run \"/etc/rc.d/init.d/sapdb start\" to start SAP DB."
-fi
+%service sapdb restart "SAP DB"
 
 DBROOT=%{depend}
 export DBROOT
@@ -626,12 +628,8 @@ if [ "$1" != "0" ]; then
 	exit 0
 fi
 
-if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/sapdb ]; then
-		/etc/rc.d/init.d/sapdb stop 1>&2
-	fi
-	/sbin/chkconfig --del sapdb
-fi
+%service sapdb stop
+/sbin/chkconfig --del sapdb
 
 DBROOT=%{depend}
 export DBROOT
@@ -671,18 +669,11 @@ exit 0
 
 %post web
 /sbin/chkconfig --add sapdb-web
-if [ -f /var/lock/subsys/sapdb-web ]; then
-	/etc/rc.d/init.d/sapdb-web restart 1>&2
-else
-	echo "Run \"/etc/rc.d/init.d/sapdb-web start\" to start SAP DB WebServer."
-fi
-
+%service sapdb-web restart "SAP DB WebServer"
 
 %preun web
 if [ "$1" = "0" ]; then
-	if [ -f /var/lock/subsys/sapdb-web ]; then
-		/etc/rc.d/init.d/sapdb-web stop 1>&2
-	fi
+	%service sapdb-web stop
 	/sbin/chkconfig --del sapdb-web
 fi
 
