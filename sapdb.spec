@@ -16,7 +16,7 @@
 %define		intversion	V74_03_17
 
 Summary:	SAP DB
-Summary(pl.UTF-8):   SAP DB
+Summary(pl.UTF-8):	SAP DB
 Name:		sapdb
 Version:	%{mainver}.%{subver}
 Release:	0.6
@@ -94,7 +94,7 @@ SAP DB.
 
 %package docs
 Summary:	SAP DB documentation
-Summary(pl.UTF-8):   Dokumentacja SAP DB
+Summary(pl.UTF-8):	Dokumentacja SAP DB
 Group:		Applications/Databases
 
 %description docs
@@ -107,7 +107,7 @@ stronie <http://www.sapdb.org/>.
 
 %package ind
 Summary:	SAP DB - release independend programs
-Summary(pl.UTF-8):   SAP DB - programy niezależne od wersji
+Summary(pl.UTF-8):	SAP DB - programy niezależne od wersji
 Group:		Applications/Databases
 Requires(post,prun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
@@ -140,7 +140,7 @@ For more information please see <http://www.sapdb.org/>.
 
 %package srv
 Summary:	SAP DB database server
-Summary(pl.UTF-8):   Serwer bazodanowy SAP DB
+Summary(pl.UTF-8):	Serwer bazodanowy SAP DB
 Group:		Applications/Databases
 Requires(post,preun):	/sbin/chkconfig
 Requires(pre):	%{name}-ind = %{version}-%{release}
@@ -154,7 +154,7 @@ Serwer bazodanowy SAP DB.
 
 %package web
 Summary:	SAP DB web tools
-Summary(pl.UTF-8):   Narzędzia WWW dla SAP DB
+Summary(pl.UTF-8):	Narzędzia WWW dla SAP DB
 Group:		Applications/Databases
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-callif = %{version}-%{release}
@@ -169,7 +169,7 @@ Narzędzia WWW dla SAP DB.
 
 %package precompiler
 Summary:	SAP DB precompiler
-Summary(pl.UTF-8):   Prekompilator SAP DB
+Summary(pl.UTF-8):	Prekompilator SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}-%{release}
 
@@ -181,7 +181,7 @@ Prekompilator SAP DB.
 
 %package callif
 Summary:	SAP DB ODBC and JDBC interfaces
-Summary(pl.UTF-8):   Interfejsy ODBC i JDBC do SAP DB
+Summary(pl.UTF-8):	Interfejsy ODBC i JDBC do SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}-%{release}
 
@@ -199,7 +199,7 @@ Więcej informacji można znaleźć na stronie <http://www.sapdb.org/>.
 
 %package scriptif
 Summary:	SAP DB Perl and Python interfaces
-Summary(pl.UTF-8):   Interfejsy Perla i Pythona do SAP DB
+Summary(pl.UTF-8):	Interfejsy Perla i Pythona do SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}-%{release}
 
