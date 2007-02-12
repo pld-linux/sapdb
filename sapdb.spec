@@ -16,7 +16,7 @@
 %define		intversion	V74_03_17
 
 Summary:	SAP DB
-Summary(pl):	SAP DB
+Summary(pl.UTF-8):   SAP DB
 Name:		sapdb
 Version:	%{mainver}.%{subver}
 Release:	0.6
@@ -89,25 +89,25 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %description
 SAP DB.
 
-%description -l pl
+%description -l pl.UTF-8
 SAP DB.
 
 %package docs
 Summary:	SAP DB documentation
-Summary(pl):	Dokumentacja SAP DB
+Summary(pl.UTF-8):   Dokumentacja SAP DB
 Group:		Applications/Databases
 
 %description docs
 HTML documentation for SAP DB. For more information please see
 <http://www.sapdb.org/>.
 
-%description docs -l pl
-Dokumentacja HTML do SAP DB. Wiêcej informacji mo¿na znale¼æ na
+%description docs -l pl.UTF-8
+Dokumentacja HTML do SAP DB. WiÄ™cej informacji moÅ¼na znaleÅºÄ‡ na
 stronie <http://www.sapdb.org/>.
 
 %package ind
 Summary:	SAP DB - release independend programs
-Summary(pl):	SAP DB - programy niezale¿ne od wersji
+Summary(pl.UTF-8):   SAP DB - programy niezaleÅ¼ne od wersji
 Group:		Applications/Databases
 Requires(post,prun):	/sbin/chkconfig
 Requires(postun):	/usr/sbin/groupdel
@@ -131,16 +131,16 @@ Provides:	user(sapdb)
 
 For more information please see <http://www.sapdb.org/>.
 
-%description ind -l pl
-- serwer zdalnego dostêpu
-- narzêdzia linii poleceñ do administracji bazami danych
-- czê¶æ uruchomieniowa prekompilatora (dla aplikacji zbudowanych przez
-  prekompilator SAP DB) Wiêcej informacji mo¿na znale¼æ na stronie
+%description ind -l pl.UTF-8
+- serwer zdalnego dostÄ™pu
+- narzÄ™dzia linii poleceÅ„ do administracji bazami danych
+- czÄ™Å›Ä‡ uruchomieniowa prekompilatora (dla aplikacji zbudowanych przez
+  prekompilator SAP DB) WiÄ™cej informacji moÅ¼na znaleÅºÄ‡ na stronie
   <http://www.sapdb.org/>.
 
 %package srv
 Summary:	SAP DB database server
-Summary(pl):	Serwer bazodanowy SAP DB
+Summary(pl.UTF-8):   Serwer bazodanowy SAP DB
 Group:		Applications/Databases
 Requires(post,preun):	/sbin/chkconfig
 Requires(pre):	%{name}-ind = %{version}-%{release}
@@ -149,12 +149,12 @@ Requires:	rc-scripts
 %description srv
 SAP DB database server.
 
-%description srv -l pl
+%description srv -l pl.UTF-8
 Serwer bazodanowy SAP DB.
 
 %package web
 Summary:	SAP DB web tools
-Summary(pl):	Narzêdzia WWW dla SAP DB
+Summary(pl.UTF-8):   NarzÄ™dzia WWW dla SAP DB
 Group:		Applications/Databases
 Requires(post,preun):	/sbin/chkconfig
 Requires:	%{name}-callif = %{version}-%{release}
@@ -164,24 +164,24 @@ Requires:	rc-scripts
 %description web
 SAP DB web tools.
 
-%description web -l pl
-Narzêdzia WWW dla SAP DB.
+%description web -l pl.UTF-8
+NarzÄ™dzia WWW dla SAP DB.
 
 %package precompiler
 Summary:	SAP DB precompiler
-Summary(pl):	Prekompilator SAP DB
+Summary(pl.UTF-8):   Prekompilator SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}-%{release}
 
 %description precompiler
 SAP DB precompiler.
 
-%description precompiler -l pl
+%description precompiler -l pl.UTF-8
 Prekompilator SAP DB.
 
 %package callif
 Summary:	SAP DB ODBC and JDBC interfaces
-Summary(pl):	Interfejsy ODBC i JDBC do SAP DB
+Summary(pl.UTF-8):   Interfejsy ODBC i JDBC do SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}-%{release}
 
@@ -191,22 +191,22 @@ Requires:	%{name}-ind = %{version}-%{release}
 
 For more information please see <http://www.sapdb.org/>.
 
-%description callif -l pl
+%description callif -l pl.UTF-8
 - sterownik ODBC
 - sterownik JDBC
 
-Wiêcej informacji mo¿na znale¼æ na stronie <http://www.sapdb.org/>.
+WiÄ™cej informacji moÅ¼na znaleÅºÄ‡ na stronie <http://www.sapdb.org/>.
 
 %package scriptif
 Summary:	SAP DB Perl and Python interfaces
-Summary(pl):	Interfejsy Perla i Pythona do SAP DB
+Summary(pl.UTF-8):   Interfejsy Perla i Pythona do SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}-%{release}
 
 %description scriptif
 SAP DB Perl and Python interfaces.
 
-%description scriptif -l pl
+%description scriptif -l pl.UTF-8
 Interfejsy Perla i Pythona do SAP DB.
 
 %package testdb
@@ -227,17 +227,17 @@ A script to remove this database is also included.
 The scripts can be found in the %{sapdbdir}/testdb directory, and
 should be started as user sapdb.
 
-%description testdb -l pl
-Ten pakiet zawiera skrypt tp tworz±cy instancjê TST bazy danych
-(zawieraj±c± 20 MB miejsca na dane i 8 MB miejsca na logi) i
-natychmiast j± uruchamiaj±cy. Nale¿y pamiêtaæ o wy³±czeniu bazy
-danych przed zamkniêciem systemu.
-- przyk³adowy u¿ytkownik bazy danych: TEST, has³o TEST
-- u¿ytkownik DBM: DBM, has³o DBM
-- administrator bazy danych: DBA, has³o DBA
-Znajduje siê tu równie¿ skrypt usuwaj±cy tê bazê danych.
-Skrypty znajduj± siê w katalogu %{sapdbdir}/testdb i powinien je
-uruchamiaæ u¿ytkownik sapdb.
+%description testdb -l pl.UTF-8
+Ten pakiet zawiera skrypt tp tworzÄ…cy instancjÄ™ TST bazy danych
+(zawierajÄ…cÄ… 20 MB miejsca na dane i 8 MB miejsca na logi) i
+natychmiast jÄ… uruchamiajÄ…cy. NaleÅ¼y pamiÄ™taÄ‡ o wyÅ‚Ä…czeniu bazy
+danych przed zamkniÄ™ciem systemu.
+- przykÅ‚adowy uÅ¼ytkownik bazy danych: TEST, hasÅ‚o TEST
+- uÅ¼ytkownik DBM: DBM, hasÅ‚o DBM
+- administrator bazy danych: DBA, hasÅ‚o DBA
+Znajduje siÄ™ tu rÃ³wnieÅ¼ skrypt usuwajÄ…cy tÄ™ bazÄ™ danych.
+Skrypty znajdujÄ… siÄ™ w katalogu %{sapdbdir}/testdb i powinien je
+uruchamiaÄ‡ uÅ¼ytkownik sapdb.
 
 %prep
 %setup -q -c -a0 -T
