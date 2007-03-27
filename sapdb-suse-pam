@@ -1,2 +1,3 @@
 #%PAM-1.0
-auth     required       pam_unix2.so	nullok
+auth		include		system-auth
+account		include		system-auth
