@@ -211,7 +211,7 @@ Interfejsy Perla i Pythona do SAP DB.
 
 %package testdb
 Summary:	SAP DB test database
-Summary:	Testowa baza danych SAP DB
+Summary(pl.UTF-8):	Testowa baza danych SAP DB
 Group:		Applications/Databases
 Requires:	%{name}-ind = %{version}-%{release}
 Requires:	%{name}-srv = %{version}-%{release}
